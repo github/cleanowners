@@ -17,6 +17,9 @@ class TestEnv(unittest.TestCase):
             "GH_TOKEN": "my_token",
             "EXEMPT_REPOS": "repo4,repo5",
             "DRY_RUN": "False",
+            "TITLE": "Title01",
+            "BODY": "Body01",
+            "COMMIT_MESSAGE": "Commit01",
         },
     )
     def test_get_env_vars_with_org(self):
@@ -28,6 +31,9 @@ class TestEnv(unittest.TestCase):
             "",
             ["repo4", "repo5"],
             False,
+            "Title01",
+            "Body01",
+            "Commit01",
         )
         result = get_env_vars()
         self.assertEqual(result, expected_result)
@@ -38,12 +44,7 @@ class TestEnv(unittest.TestCase):
             "REPOSITORY": "org/repo1,org2/repo2",
             "GH_TOKEN": "my_token",
             "EXEMPT_REPOS": "repo4,repo5",
-            "TYPE": "pull",
-            "TITLE": "Dependabot Alert custom title",
-            "BODY": "Dependabot custom body",
-            "CREATED_AFTER_DATE": "2023-01-01",
             "DRY_RUN": "true",
-            "COMMIT_MESSAGE": "Create dependabot configuration",
         },
         clear=True,
     )
@@ -56,6 +57,9 @@ class TestEnv(unittest.TestCase):
             "",
             ["repo4", "repo5"],
             True,
+            "Clean up CODEOWNERS file",
+            "Consider these updates to the CODEOWNERS file to remove users no longer in this organization.",
+            "Remove users no longer in this organization from CODEOWNERS file",
         )
         result = get_env_vars()
         self.assertEqual(result, expected_result)
@@ -76,6 +80,9 @@ class TestEnv(unittest.TestCase):
             "",
             [],
             False,
+            "Clean up CODEOWNERS file",
+            "Consider these updates to the CODEOWNERS file to remove users no longer in this organization.",
+            "Remove users no longer in this organization from CODEOWNERS file",
         )
         result = get_env_vars()
         self.assertEqual(result, expected_result)
@@ -116,6 +123,9 @@ class TestEnv(unittest.TestCase):
             "",
             [],
             False,
+            "Clean up CODEOWNERS file",
+            "Consider these updates to the CODEOWNERS file to remove users no longer in this organization.",
+            "Remove users no longer in this organization from CODEOWNERS file",
         )
         result = get_env_vars()
         self.assertEqual(result, expected_result)

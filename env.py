@@ -8,7 +8,9 @@ from os.path import dirname, join
 from dotenv import load_dotenv
 
 
-def get_env_vars() -> tuple[str | None, list[str], str, str, list[str], bool]:
+def get_env_vars() -> (
+    tuple[str | None, list[str], str, str, list[str], bool, str, str, str]
+):
     """
     Get the environment variables for use in the action.
 
@@ -22,6 +24,9 @@ def get_env_vars() -> tuple[str | None, list[str], str, str, list[str], bool]:
         ghe (str): The GitHub Enterprise URL to use for authentication
         exempt_repositories_list (list[str]): A list of repositories to exempt from the action
         dry_run (bool): Whether or not to actually open issues/pull requests
+        title (str): The title to use for the pull request
+        body (str): The body to use for the pull request
+        message (str): Commit message to use
 
     """
     # Load from .env file if it exists
@@ -71,6 +76,37 @@ def get_env_vars() -> tuple[str | None, list[str], str, str, list[str], bool]:
     else:
         dry_run_bool = False
 
+    title = os.getenv("TITLE")
+    # make sure that title is a string with less than 70 characters
+    if title:
+        if len(title) > 70:
+            raise ValueError(
+                "TITLE environment variable is too long. Max 70 characters"
+            )
+    else:
+        title = "Clean up CODEOWNERS file"
+
+    body = os.getenv("BODY")
+    # make sure that body is a string with less than 65536 characters
+    if body:
+        if len(body) > 65536:
+            raise ValueError(
+                "BODY environment variable is too long. Max 65536 characters"
+            )
+    else:
+        body = "Consider these updates to the CODEOWNERS file to remove users no longer in this organization."
+
+    commit_message = os.getenv("COMMIT_MESSAGE")
+    if commit_message:
+        if len(commit_message) > 65536:
+            raise ValueError(
+                "COMMIT_MESSAGE environment variable is too long. Max 65536 characters"
+            )
+    else:
+        commit_message = (
+            "Remove users no longer in this organization from CODEOWNERS file"
+        )
+
     return (
         organization,
         repositories_list,
@@ -78,4 +114,7 @@ def get_env_vars() -> tuple[str | None, list[str], str, str, list[str], bool]:
         ghe,
         exempt_repositories_list,
         dry_run_bool,
+        title,
+        body,
+        commit_message,
     )
