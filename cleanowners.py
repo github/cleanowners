@@ -2,10 +2,9 @@
 
 import uuid
 
-import github3
-
 import auth
 import env
+import github3
 
 
 def main():  # pragma: no cover
