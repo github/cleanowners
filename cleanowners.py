@@ -1,7 +1,9 @@
 """A GitHub Action to suggest removal of non-organization members from CODEOWNERS files."""
 
 import uuid
+
 import github3
+
 import auth
 import env
 
@@ -42,7 +44,6 @@ def main():  # pragma: no cover
             continue
 
         # Check to see if repository has a CODEOWNERS file
-        # valid locations: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners#codeowners-file-location
         file_changed = False
         codeowners_file_contents = None
         codeowners_filepath = None
