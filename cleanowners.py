@@ -163,5 +163,5 @@ def commit_changes(
     return pull
 
 
-if __name__ == "__main__":
-    main()  # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
+    main()
