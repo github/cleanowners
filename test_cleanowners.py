@@ -69,12 +69,13 @@ class TestGetUsernamesFromCodeowners(unittest.TestCase):
         """Test the get_usernames_from_codeowners function."""
         codeowners_file_contents = MagicMock()
         codeowners_file_contents.decoded = """
-        # Comment
-        @user1
-        @user2
-        # Another comment
-        @user3
-        """
+# Comment
+@user1
+@user2
+
+# Another comment
+@user3
+"""
         expected_usernames = ["user1", "user2", "user3"]
 
         result = get_usernames_from_codeowners(codeowners_file_contents)
