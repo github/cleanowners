@@ -69,6 +69,12 @@ def main():  # pragma: no cover
             print(f"Skipping {repo.full_name} as it does not have a CODEOWNERS file")
             continue
 
+        if codeowners_file_contents.content is None:
+            # This is a large file so we need to get the sha and download based off the sha
+            codeowners_file_contents = repo.blob(
+                repo.file_contents(codeowners_filepath).sha
+            ).decode_content()
+
         # Extract the usernames from the CODEOWNERS file
         usernames = get_usernames_from_codeowners(codeowners_file_contents)
 
