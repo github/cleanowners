@@ -1,5 +1,7 @@
 # Cleanowners action
 
+[![CodeQL](https://github.com/github/cleanowners/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/github/cleanowners/actions/workflows/github-code-scanning/codeql) [![Lint Code Base](https://github.com/github/cleanowners/actions/workflows/super-linter.yaml/badge.svg)](https://github.com/github/cleanowners/actions/workflows/super-linter.yaml) [![Python package](https://github.com/github/cleanowners/actions/workflows/python-ci.yml/badge.svg)](https://github.com/github/cleanowners/actions/workflows/python-ci.yml) [![Docker Image CI](https://github.com/github/cleanowners/actions/workflows/docker-ci.yml/badge.svg)](https://github.com/github/cleanowners/actions/workflows/docker-ci.yml)
+
 Cleanowners is a GitHub Action that is designed to help keep `CODEOWNERS` files current by removing users that are no longer a part of the organization. This is helpful for companies that are looking to remove outdated information in the `CODEOWNERS` file. This action can be paired with other `CODEOWNERS` related actions to suggest new owners or lint `CODEOWNERS` files to ensure accuracy.
 
 This action was developed by the GitHub OSPO for our own use and developed in a way that we could open source it that it might be useful to you as well! If you want to know more about how we use it, reach out in an issue in this repository.
