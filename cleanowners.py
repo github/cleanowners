@@ -27,6 +27,9 @@ def main():  # pragma: no cover
     github_connection = auth.auth_to_github(token, ghe)
     pull_count = 0
     eligble_for_pr_count = 0
+    no_codeowners_count = 0
+    codeowners_count = 0
+    users_count = 0
 
     # Get the repositories from the organization or list of repositories
     repos = get_repos_iterator(organization, repository_list, github_connection)
@@ -67,7 +70,10 @@ def main():  # pragma: no cover
 
         if not codeowners_file_contents:
             print(f"Skipping {repo.full_name} as it does not have a CODEOWNERS file")
+            no_codeowners_count += 1
             continue
+        else:
+            codeowners_count += 1
 
         if codeowners_file_contents.content is None:
             # This is a large file so we need to get the sha and download based off the sha
@@ -84,6 +90,7 @@ def main():  # pragma: no cover
                 print(
                     f"\t{username} is not a member of {organization}. Suggest removing them from {repo.full_name}"
                 )
+                users_count += 1
                 if not dry_run:
                     # Remove that username from the codeowners_file_contents
                     file_changed = True
@@ -110,8 +117,22 @@ def main():  # pragma: no cover
                 continue
 
     # Report the statistics from this run
-    print(f"Found {eligble_for_pr_count} users to remove")
+    print(f"Found {users_count} users to remove")
     print(f"Created {pull_count} pull requests successfully")
+    print(f"Skipped {no_codeowners_count} repositories without a CODEOWNERS file")
+    print(f"Processed {codeowners_count} repositories with a CODEOWNERS file")
+    if eligble_for_pr_count == 0:
+        print("No pull requests were needed")
+    else:
+        print(
+            f"{round((pull_count / eligble_for_pr_count) * 100, 2)}% of eligible repositories had pull requests created"
+        )
+    if codeowners_count + no_codeowners_count == 0:
+        print("No repositories were processed")
+    else:
+        print(
+            f"{round((codeowners_count / (codeowners_count + no_codeowners_count)) * 100, 2)}% of repositories had CODEOWNERS files"
+        )
 
 
 def get_repos_iterator(organization, repository_list, github_connection):
