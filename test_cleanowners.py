@@ -72,10 +72,13 @@ class TestGetUsernamesFromCodeowners(unittest.TestCase):
         # Comment
         @user1
         @user2
+        @org/team
         # Another comment
-        @user3
-        """
-        expected_usernames = ["user1", "user2", "user3"]
+        @user3 @user4
+        """.encode(
+            "ASCII"
+        )
+        expected_usernames = ["user1", "user2", "user3", "user4"]
 
         result = get_usernames_from_codeowners(codeowners_file_contents)
 

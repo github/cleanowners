@@ -74,7 +74,7 @@ def main():  # pragma: no cover
 
         for username in usernames:
             # Check to see if the username is a member of the organization
-            if not github_connection.organization(organization).has_member(username):
+            if not github_connection.organization(organization).is_member(username):
                 print(
                     f"\t{username} is not a member of {organization}. Suggest removing them from {repo.full_name}"
                 )
@@ -127,15 +127,23 @@ def get_usernames_from_codeowners(codeowners_file_contents):
     """Extract the usernames from the CODEOWNERS file"""
     usernames = []
     for line in codeowners_file_contents.decoded.splitlines():
-        # skip comments
-        if line.startswith("#"):
-            continue
-        # skip empty lines
-        if not line.strip():
-            continue
-        # If the line has an @ symbol, grab the word with the @ in it and add it to the list
-        if "@" in line:
-            usernames.append(line.split("@")[1].split()[0])
+        if line:
+            line = line.decode()
+            # skip comments
+            if line.lstrip().startswith("#"):
+                continue
+            # skip empty lines
+            if not line.strip():
+                continue
+            # Identify handles
+            if "@" in line:
+                handles = line.split("@")[1:]
+                for handle in handles:
+                    handle = handle.split()[0]
+                    # Identify team handles by the presence of a slash.
+                    # Ignore teams because non-org members cannot be in a team.
+                    if "/" not in handle:
+                        usernames.append(handle)
     return usernames
 
 
