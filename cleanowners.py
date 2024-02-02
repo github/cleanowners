@@ -72,8 +72,8 @@ def main():  # pragma: no cover
             print(f"Skipping {repo.full_name} as it does not have a CODEOWNERS file")
             no_codeowners_count += 1
             continue
-        else:
-            codeowners_count += 1
+
+        codeowners_count += 1
 
         if codeowners_file_contents.content is None:
             # This is a large file so we need to get the sha and download based off the sha
