@@ -40,7 +40,7 @@ Below are the allowed configuration options:
 
 ```yaml
 ---
-name: Weekly dependabot checks
+name: Weekly codeowners cleanup
 on:
   workflow_dispatch:
   schedule:
@@ -66,7 +66,7 @@ jobs:
 
 ```yaml
 ---
-name: Weekly dependabot checks
+name: Weekly codeowners cleanup
 on:
   workflow_dispatch:
   schedule:
