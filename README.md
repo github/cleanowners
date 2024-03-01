@@ -40,7 +40,7 @@ Below are the allowed configuration options:
 
 ```yaml
 ---
-name: Weekly dependabot checks
+name: Weekly codeowners cleanup
 on:
   workflow_dispatch:
   schedule:
@@ -66,7 +66,7 @@ jobs:
 
 ```yaml
 ---
-name: Weekly dependabot checks
+name: Weekly codeowners cleanup
 on:
   workflow_dispatch:
   schedule:
@@ -102,3 +102,7 @@ jobs:
 ## License
 
 [MIT](LICENSE)
+
+## More OSPO Tools
+
+Looking for more resources for your open source program office (OSPO)? Check out the [`github-ospo`](https://github.com/github/github-ospo) repository for a variety of tools designed to support your needs.
