@@ -94,8 +94,9 @@ def main():  # pragma: no cover
                 if not dry_run:
                     # Remove that username from the codeowners_file_contents
                     file_changed = True
-                    codeowners_file_contents = codeowners_file_contents.decoded.replace(
-                        f"@{username}", ""
+                    bytes_username = f"@{username}".encode("ASCII")
+                    codeowners_file_contents_new = (
+                        codeowners_file_contents.decoded.replace(bytes_username, b"")
                     )
 
         # Update the CODEOWNERS file if usernames were removed
@@ -106,7 +107,7 @@ def main():  # pragma: no cover
                     title,
                     body,
                     repo,
-                    codeowners_file_contents,
+                    codeowners_file_contents_new,
                     commit_message,
                     codeowners_filepath,
                 )
@@ -175,7 +176,12 @@ def get_usernames_from_codeowners(codeowners_file_contents):
 
 
 def commit_changes(
-    title, body, repo, codeowners_file_contents, commit_message, codeowners_filepath
+    title,
+    body,
+    repo,
+    codeowners_file_contents_new,
+    commit_message,
+    codeowners_filepath,
 ):
     """Commit the changes to the repo and open a pull reques and return the pull request object"""
     default_branch = repo.default_branch
@@ -184,10 +190,9 @@ def commit_changes(
     front_matter = "refs/heads/"
     branch_name = "codeowners-" + str(uuid.uuid4())
     repo.create_ref(front_matter + branch_name, default_branch_commit)
-    repo.create_file(
-        path=codeowners_filepath,
+    repo.file_contents(codeowners_filepath).update(
         message=commit_message,
-        content=codeowners_file_contents.encode(),  # Convert to bytes object
+        content=codeowners_file_contents_new,
         branch=branch_name,
     )
 
