@@ -8,18 +8,52 @@ from os.path import dirname, join
 from dotenv import load_dotenv
 
 
-def get_env_vars() -> (
-    tuple[str | None, list[str], str, str, list[str], bool, str, str, str]
+def get_int_env_var(env_var_name: str) -> (int | None):
+    """Get an integer environment variable.
+
+    Args:
+        env_var_name: The name of the environment variable to retrieve.
+
+    Returns:
+        The value of the environment variable as an integer or None.
+    """
+    env_var = os.environ.get(env_var_name)
+    if env_var is None or not env_var.strip():
+        return None
+    try:
+        return int(env_var)
+    except ValueError:
+        return None
+
+
+def get_env_vars(test=False) -> (
+    tuple[
+        str | None,
+        list[str],
+        int | None,
+        int | None,
+        bytes,
+        str,
+        str,
+        list[str],
+        bool,
+        str,
+        str,
+        str,
+    ]
 ):
     """
     Get the environment variables for use in the action.
 
     Args:
-        None
+        test (bool): Whether or not to load the environment variables from a .env file (default: False)
 
     Returns:
         organization (str): The organization to search for repositories in
         repository_list (list[str]): A list of repositories to search for
+        gh_app_id (int): The GitHub App ID to use for authentication
+        gh_app_installation_id (int): The GitHub App Installation ID to use for authentication
+        gh_app_private_key_bytes (bytes): The GitHub App Private Key as bytes to use for authentication
         token (str): The GitHub token to use for authentication
         ghe (str): The GitHub Enterprise URL to use for authentication
         exempt_repositories_list (list[str]): A list of repositories to exempt from the action
@@ -29,9 +63,10 @@ def get_env_vars() -> (
         message (str): Commit message to use
 
     """
-    # Load from .env file if it exists
-    dotenv_path = join(dirname(__file__), ".env")
-    load_dotenv(dotenv_path)
+    if not test:
+        # Load from .env file if it exists
+        dotenv_path = join(dirname(__file__), ".env")
+        load_dotenv(dotenv_path)
 
     organization = os.getenv("ORGANIZATION")
     repositories_str = os.getenv("REPOSITORY")
@@ -53,9 +88,22 @@ def get_env_vars() -> (
             repository.strip() for repository in repositories_str.split(",")
         ]
 
+    gh_app_id = get_int_env_var("GH_APP_ID")
+    gh_app_private_key_bytes = os.environ.get("GH_APP_PRIVATE_KEY", "").encode("utf8")
+    gh_app_installation_id = get_int_env_var("GH_APP_INSTALLATION_ID")
+
+    if gh_app_id and (not gh_app_private_key_bytes or not gh_app_installation_id):
+        raise ValueError(
+            "GH_APP_ID set and GH_APP_INSTALLATION_ID or GH_APP_PRIVATE_KEY variable not set"
+        )
+
     token = os.getenv("GH_TOKEN")
-    # required env variable
-    if not token:
+    if (
+        not gh_app_id and
+        not gh_app_private_key_bytes and
+        not gh_app_installation_id and
+        not token
+    ):
         raise ValueError("GH_TOKEN environment variable not set")
 
     ghe = os.getenv("GH_ENTERPRISE_URL", default="").strip()
@@ -110,6 +158,9 @@ def get_env_vars() -> (
     return (
         organization,
         repositories_list,
+        gh_app_id,
+        gh_app_installation_id,
+        gh_app_private_key_bytes,
         token,
         ghe,
         exempt_repositories_list,
