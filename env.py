@@ -27,14 +27,14 @@ def get_int_env_var(env_var_name: str) -> int | None:
 
 
 def get_env_vars(
-    test=False,
+    test: bool = False
 ) -> tuple[
     str | None,
     list[str],
     int | None,
     int | None,
     bytes,
-    str,
+    str | None,
     str,
     list[str],
     bool,
@@ -49,12 +49,12 @@ def get_env_vars(
         test (bool): Whether or not to load the environment variables from a .env file (default: False)
 
     Returns:
-        organization (str): The organization to search for repositories in
+        organization (str | None): The organization to search for repositories in
         repository_list (list[str]): A list of repositories to search for
-        gh_app_id (int): The GitHub App ID to use for authentication
-        gh_app_installation_id (int): The GitHub App Installation ID to use for authentication
+        gh_app_id (int | None): The GitHub App ID to use for authentication
+        gh_app_installation_id (int | None): The GitHub App Installation ID to use for authentication
         gh_app_private_key_bytes (bytes): The GitHub App Private Key as bytes to use for authentication
-        token (str): The GitHub token to use for authentication
+        token (str | None): The GitHub token to use for authentication
         ghe (str): The GitHub Enterprise URL to use for authentication
         exempt_repositories_list (list[str]): A list of repositories to exempt from the action
         dry_run (bool): Whether or not to actually open issues/pull requests
