@@ -42,7 +42,9 @@ class TestAuth(unittest.TestCase):
         """
         Test the auth_to_github function when the GitHub Enterprise URL is provided.
         """
-        result = auth.auth_to_github(None, None, b"", "token", "https://github.example.com")
+        result = auth.auth_to_github(
+            None, None, b"", "token", "https://github.example.com"
+        )
 
         self.assertIsInstance(result, github3.github.GitHubEnterprise)
 

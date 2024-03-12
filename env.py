@@ -8,7 +8,7 @@ from os.path import dirname, join
 from dotenv import load_dotenv
 
 
-def get_int_env_var(env_var_name: str) -> (int | None):
+def get_int_env_var(env_var_name: str) -> int | None:
     """Get an integer environment variable.
 
     Args:
@@ -26,22 +26,22 @@ def get_int_env_var(env_var_name: str) -> (int | None):
         return None
 
 
-def get_env_vars(test=False) -> (
-    tuple[
-        str | None,
-        list[str],
-        int | None,
-        int | None,
-        bytes,
-        str,
-        str,
-        list[str],
-        bool,
-        str,
-        str,
-        str,
-    ]
-):
+def get_env_vars(
+    test=False
+) -> tuple[
+    str | None,
+    list[str],
+    int | None,
+    int | None,
+    bytes,
+    str,
+    str,
+    list[str],
+    bool,
+    str,
+    str,
+    str,
+]:
     """
     Get the environment variables for use in the action.
 
@@ -99,10 +99,10 @@ def get_env_vars(test=False) -> (
 
     token = os.getenv("GH_TOKEN")
     if (
-        not gh_app_id and
-        not gh_app_private_key_bytes and
-        not gh_app_installation_id and
-        not token
+        not gh_app_id
+        and not gh_app_private_key_bytes
+        and not gh_app_installation_id
+        and not token
     ):
         raise ValueError("GH_TOKEN environment variable not set")
 

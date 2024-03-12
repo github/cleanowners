@@ -29,7 +29,7 @@ class TestEnv(unittest.TestCase):
             "GH_TOKEN",
             "ORGANIZATION",
             "REPOSITORY",
-            "TITLE"
+            "TITLE",
         ]
         for key in env_keys:
             if key in os.environ:
