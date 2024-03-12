@@ -24,7 +24,8 @@ class TestCommitChanges(unittest.TestCase):
         mock_repo.default_branch = "main"
         mock_repo.ref.return_value.object.sha = "abc123"  # Mock SHA for latest commit
         mock_repo.create_ref.return_value = True
-        mock_repo.create_file.return_value = True
+        mock_repo.file_contents.return_value = MagicMock()
+        mock_repo.file_contents.update.return_value = True
         mock_repo.create_pull.return_value = "MockPullRequest"
 
         title = "Test Title"
@@ -45,12 +46,7 @@ class TestCommitChanges(unittest.TestCase):
         mock_repo.create_ref.assert_called_once_with(
             f"refs/heads/{branch_name}", "abc123"
         )
-        mock_repo.create_file.assert_called_once_with(
-            path="CODEOWNERS",
-            message=commit_message,
-            content=dependabot_file.encode(),
-            branch=branch_name,
-        )
+        mock_repo.file_contents.assert_called_once_with("CODEOWNERS")
         mock_repo.create_pull.assert_called_once_with(
             title=title,
             body=body,
