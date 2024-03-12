@@ -8,7 +8,7 @@ def auth_to_github(
     gh_app_installation_id: int,
     gh_app_private_key_bytes: bytes,
     token: str,
-    ghe: str
+    ghe: str,
 ) -> github3.GitHub:
     """
     Connect to GitHub.com or GitHub Enterprise, depending on env variables.
