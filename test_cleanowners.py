@@ -111,7 +111,7 @@ class TestGetReposIterator(unittest.TestCase):
     def test_get_repos_iterator_with_repository_list(self, mock_github):
         """Test the get_repos_iterator function with a repository list"""
         organization = None
-        repository_list = ["org/repo1", "org/repo2"]
+        repository_list = ["org/repo1", "org2/repo2"]
         github_connection = mock_github.return_value
 
         mock_repository = MagicMock()
@@ -123,7 +123,7 @@ class TestGetReposIterator(unittest.TestCase):
         # Assert that the repository method was called with the correct arguments for each repository in the list
         expected_calls = [
             unittest.mock.call("org", "repo1"),
-            unittest.mock.call("org", "repo2"),
+            unittest.mock.call("org2", "repo2"),
         ]
         github_connection.repository.assert_has_calls(expected_calls)
 

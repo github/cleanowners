@@ -85,10 +85,11 @@ def main():  # pragma: no cover
         usernames = get_usernames_from_codeowners(codeowners_file_contents)
 
         for username in usernames:
+            org = organization if organization else repo.owner.login
             # Check to see if the username is a member of the organization
-            if not github_connection.organization(organization).is_member(username):
+            if not github_connection.organization(org).is_member(username):
                 print(
-                    f"\t{username} is not a member of {organization}. Suggest removing them from {repo.full_name}"
+                    f"\t{username} is not a member of {org}. Suggest removing them from {repo.full_name}"
                 )
                 users_count += 1
                 if not dry_run:
@@ -143,9 +144,11 @@ def get_repos_iterator(organization, repository_list, github_connection):
         repos = github_connection.organization(organization).repositories()
     else:
         # Get the repositories from the repository_list
-        for repo in repository_list:
+        for full_repo_path in repository_list:
+            org = full_repo_path.split("/")[0]
+            repo = full_repo_path.split("/")[1]
             repos.append(
-                github_connection.repository(repo.split("/")[0], repo.split("/")[1])
+                github_connection.repository(org, repo)
             )
 
     return repos
