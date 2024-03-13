@@ -27,7 +27,7 @@ def get_int_env_var(env_var_name: str) -> int | None:
 
 
 def get_env_vars(
-    test: bool = False
+    test: bool = False,
 ) -> tuple[
     str | None,
     list[str],
