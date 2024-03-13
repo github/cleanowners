@@ -147,9 +147,7 @@ def get_repos_iterator(organization, repository_list, github_connection):
         for full_repo_path in repository_list:
             org = full_repo_path.split("/")[0]
             repo = full_repo_path.split("/")[1]
-            repos.append(
-                github_connection.repository(org, repo)
-            )
+            repos.append(github_connection.repository(org, repo))
 
     return repos
 
