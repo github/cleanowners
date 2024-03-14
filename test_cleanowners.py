@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 
 from cleanowners import (
     commit_changes,
+    get_org,
     get_repos_iterator,
     get_usernames_from_codeowners,
 )
@@ -79,6 +80,22 @@ class TestGetUsernamesFromCodeowners(unittest.TestCase):
         result = get_usernames_from_codeowners(codeowners_file_contents)
 
         self.assertEqual(result, expected_usernames)
+
+
+class TestGetOrganization(unittest.TestCase):
+    """Test the get_organization function in evergreen.py"""
+
+    @patch("github3.login")
+    def test_get_organization(self, mock_github):
+        """Test the get_organization function."""
+        organization = "my_organization"
+        github_connection = mock_github.return_value
+
+        result = get_org(github_connection, organization)
+
+        github_connection.organization.assert_called_once_with(organization)
+
+        self.assertEqual(result, github_connection.organization.return_value)
 
 
 class TestGetReposIterator(unittest.TestCase):

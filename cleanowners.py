@@ -6,6 +6,15 @@ import auth
 import env
 import github3
 
+def get_org(github_connection, organization):
+    """Get the organization object"""
+    if organization:
+        try:
+            return github_connection.organization(organization)
+        except github3.exceptions.NotFoundError:
+            print(f"Organization {organization} not found")
+            return None
+    return None
 
 def main():  # pragma: no cover
     """Run the main program"""
@@ -30,6 +39,11 @@ def main():  # pragma: no cover
     no_codeowners_count = 0
     codeowners_count = 0
     users_count = 0
+
+    gh_org = get_org(github_connection, organization)
+    if not gh_org:
+        print(f"Organization {organization} not found")
+        return
 
     # Get the repositories from the organization or list of repositories
     repos = get_repos_iterator(organization, repository_list, github_connection)
@@ -86,8 +100,13 @@ def main():  # pragma: no cover
 
         for username in usernames:
             org = organization if organization else repo.owner.login
+            gh_org = get_org(github_connection, org)
+            if not gh_org:
+                print(f"Owner {org} of repo {repo} is not an organization.")
+                break
+
             # Check to see if the username is a member of the organization
-            if not github_connection.organization(org).is_member(username):
+            if not gh_org.is_member(username):
                 print(
                     f"\t{username} is not a member of {org}. Suggest removing them from {repo.full_name}"
                 )
@@ -97,7 +116,9 @@ def main():  # pragma: no cover
                     file_changed = True
                     bytes_username = f"@{username}".encode("ASCII")
                     codeowners_file_contents_new = (
-                        codeowners_file_contents.decoded.replace(bytes_username, b"")
+                        codeowners_file_contents.decoded.replace(
+                            bytes_username, b""
+                        )
                     )
 
         # Update the CODEOWNERS file if usernames were removed
