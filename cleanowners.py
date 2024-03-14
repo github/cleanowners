@@ -6,6 +6,7 @@ import auth
 import env
 import github3
 
+
 def get_org(github_connection, organization):
     """Get the organization object"""
     if organization:
@@ -15,6 +16,7 @@ def get_org(github_connection, organization):
             print(f"Organization {organization} not found")
             return None
     return None
+
 
 def main():  # pragma: no cover
     """Run the main program"""
@@ -116,9 +118,7 @@ def main():  # pragma: no cover
                     file_changed = True
                     bytes_username = f"@{username}".encode("ASCII")
                     codeowners_file_contents_new = (
-                        codeowners_file_contents.decoded.replace(
-                            bytes_username, b""
-                        )
+                        codeowners_file_contents.decoded.replace(bytes_username, b"")
                     )
 
         # Update the CODEOWNERS file if usernames were removed
