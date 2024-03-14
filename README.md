@@ -29,7 +29,7 @@ Below are the allowed configuration options:
 |---------------------------|----------|---------|-------------|
 | `GH_TOKEN`                | True     |   ""    | The GitHub Token used to scan the repository or organization. Must have write access to all repository you are interested in scanning so that an issue or pull request can be created. |
 | `GH_APP_ID`               | False    | `""`       | GitHub Application ID. See [documentation](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/about-authentication-with-a-github-app) for more details. |
-| `GH_APP_INSTALLATION_ID`  | false    | `""`       | GitHub Application Installation ID. |
+| `GH_APP_INSTALLATION_ID`  | False    | `""`       | GitHub Application Installation ID. See [documentation](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/about-authentication-with-a-github-app) for more details. |
 | `GH_APP_PRIVATE_KEY`      | false    | `""`       | GitHub Application Private Key |
 | `GH_ENTERPRISE_URL`       | False    |   ""    | The `GH_ENTERPRISE_URL` is used to connect to an enterprise server instance of GitHub. github.com users should not enter anything here. |
 | `ORGANIZATION`            | Required to have `ORGANIZATION` or `REPOSITORY` |         | The name of the GitHub organization which you want this action to work from. ie. github.com/github would be `github` |
