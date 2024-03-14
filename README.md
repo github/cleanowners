@@ -35,7 +35,7 @@ Below are the allowed configuration options:
 | `ORGANIZATION`            | Required to have `ORGANIZATION` or `REPOSITORY` |         | The name of the GitHub organization which you want this action to work from. ie. github.com/github would be `github` |
 | `REPOSITORY`              | Required to have `ORGANIZATION` or `REPOSITORY` |         | The name of the repository and organization which you want this action to work from. ie. `github/cleanowners` or a comma separated list of multiple repositories `github/cleanowners,super-linter/super-linter` |
 | `EXEMPT_REPOS`            | False    |   ""    | These repositories will be exempt from this action. ex: If my org is set to `github` then I might want to exempt a few of the repos but get the rest by setting `EXEMPT_REPOS` to `github/cleanowners,github/contributors` |
-| `DRY_RUN`                 | False    | false   | If set to true, this action will not create any pull requests. It will only log the repositories that could have the `CODEOWNERS` file updated. This is useful for testing or discovering the scope of this issue in your organization. |
+| `DRY_RUN`                 | False    | False   | If set to true, this action will not create any pull requests. It will only log the repositories that could have the `CODEOWNERS` file updated. This is useful for testing or discovering the scope of this issue in your organization. |
 
 ### Example workflows
 
