@@ -25,14 +25,17 @@ If you need support using this project or have questions about it, please [open 
 
 Below are the allowed configuration options:
 
-| field                 | required | default | description |
-|-----------------------|----------|---------|-------------|
-| `GH_TOKEN`            | True     |   ""    | The GitHub Token used to scan the repository or organization. Must have write access to all repository you are interested in scanning so that an issue or pull request can be created. |
-| `GH_ENTERPRISE_URL`   | False    |   ""    | The `GH_ENTERPRISE_URL` is used to connect to an enterprise server instance of GitHub. github.com users should not enter anything here. |
-| `ORGANIZATION`        | Required to have `ORGANIZATION` or `REPOSITORY` |         | The name of the GitHub organization which you want this action to work from. ie. github.com/github would be `github` |
-| `REPOSITORY`          | Required to have `ORGANIZATION` or `REPOSITORY` |         | The name of the repository and organization which you want this action to work from. ie. `github/cleanowners` or a comma separated list of multiple repositories `github/cleanowners,super-linter/super-linter` |
-| `EXEMPT_REPOS`        | False    |   ""    | These repositories will be exempt from this action. ex: If my org is set to `github` then I might want to exempt a few of the repos but get the rest by setting `EXEMPT_REPOS` to `github/cleanowners,github/contributors` |
-| `DRY_RUN`             | False    | false   | If set to true, this action will not create any pull requests. It will only log the repositories that could have the `CODEOWNERS` file updated. This is useful for testing or discovering the scope of this issue in your organization. |
+| field                     | required | default | description |
+|---------------------------|----------|---------|-------------|
+| `GH_TOKEN`                | True     |   ""    | The GitHub Token used to scan the repository or organization. Must have write access to all repository you are interested in scanning so that an issue or pull request can be created. |
+| `GH_APP_ID`               | False    | `""`       | GitHub Application ID. See [documentation](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/about-authentication-with-a-github-app) for more details. |
+| `GH_APP_INSTALLATION_ID`  | False    | `""`       | GitHub Application Installation ID. See [documentation](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/about-authentication-with-a-github-app) for more details. |
+| `GH_APP_PRIVATE_KEY`      | False    | `""`       | GitHub Application Private Key. See [documentation](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/about-authentication-with-a-github-app) for more details. |
+| `GH_ENTERPRISE_URL`       | False    |   ""    | The `GH_ENTERPRISE_URL` is used to connect to an enterprise server instance of GitHub. github.com users should not enter anything here. |
+| `ORGANIZATION`            | Required to have `ORGANIZATION` or `REPOSITORY` |         | The name of the GitHub organization which you want this action to work from. ie. github.com/github would be `github` |
+| `REPOSITORY`              | Required to have `ORGANIZATION` or `REPOSITORY` |         | The name of the repository and organization which you want this action to work from. ie. `github/cleanowners` or a comma separated list of multiple repositories `github/cleanowners,super-linter/super-linter` |
+| `EXEMPT_REPOS`            | False    |   ""    | These repositories will be exempt from this action. ex: If my org is set to `github` then I might want to exempt a few of the repos but get the rest by setting `EXEMPT_REPOS` to `github/cleanowners,github/contributors` |
+| `DRY_RUN`                 | False    | False   | If set to true, this action will not create any pull requests. It will only log the repositories that could have the `CODEOWNERS` file updated. This is useful for testing or discovering the scope of this issue in your organization. |
 
 ### Example workflows
 
@@ -88,6 +91,37 @@ jobs:
           ORGANIZATION: <YOUR_ORGANIZATION_GOES_HERE>
           EXEMPT_REPOS: "org_name/repo_name_1, org_name/repo_name_2"
           
+```
+
+### Authenticating with a GitHub App and Installation
+
+You can authenticate as a GitHub App Installation by providing additional environment variables. If `GH_TOKEN` is set alongside these GitHub App Installation variables, the `GH_TOKEN` will be ignored and not used.
+
+```yaml
+---
+name: Weekly codeowners cleanup via GitHub App
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '3 2 1 * *'
+
+permissions:
+  issues: write
+
+jobs:
+  cleanowners:
+    name: cleanowners
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Run cleanowners action
+        uses: github/cleanowners@v1
+        env:
+          GH_APP_ID: ${{ secrets.GH_APP_ID }}
+          GH_APP_INSTALLATION_ID: ${{ secrets.GH_APP_INSTALLATION_ID }}
+          GH_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          ORGANIZATION: <YOUR_ORGANIZATION_GOES_HERE>
+          EXEMPT_REPOS: "org_name/repo_name_1, org_name/repo_name_2"
 ```
 
 ## Local usage without Docker
