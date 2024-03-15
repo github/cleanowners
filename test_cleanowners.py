@@ -4,8 +4,10 @@ import unittest
 import uuid
 from unittest.mock import MagicMock, patch
 
+import github3
 from cleanowners import (
     commit_changes,
+    get_org,
     get_repos_iterator,
     get_usernames_from_codeowners,
 )
@@ -81,6 +83,38 @@ class TestGetUsernamesFromCodeowners(unittest.TestCase):
         self.assertEqual(result, expected_usernames)
 
 
+class TestGetOrganization(unittest.TestCase):
+    """Test the get_org function in cleanowners.py"""
+
+    @patch("github3.login")
+    def test_get_organization_succeeds(self, mock_github):
+        """Test the organization is valid."""
+        organization = "my_organization"
+        github_connection = mock_github.return_value
+
+        mock_organization = MagicMock()
+        github_connection.organization.return_value = mock_organization
+
+        result = get_org(github_connection, organization)
+
+        github_connection.organization.assert_called_once_with(organization)
+        self.assertEqual(result, mock_organization)
+
+    @patch("github3.login")
+    def test_get_organization_fails(self, mock_github):
+        """Test the organization is not valid."""
+        organization = "my_organization"
+        github_connection = mock_github.return_value
+
+        github_connection.organization.side_effect = github3.exceptions.NotFoundError(
+            resp=MagicMock(status_code=404)
+        )
+        result = get_org(github_connection, organization)
+
+        github_connection.organization.assert_called_once_with(organization)
+        self.assertIsNone(result)
+
+
 class TestGetReposIterator(unittest.TestCase):
     """Test the get_repos_iterator function in evergreen.py"""
 
@@ -111,7 +145,7 @@ class TestGetReposIterator(unittest.TestCase):
     def test_get_repos_iterator_with_repository_list(self, mock_github):
         """Test the get_repos_iterator function with a repository list"""
         organization = None
-        repository_list = ["org/repo1", "org/repo2"]
+        repository_list = ["org/repo1", "org2/repo2"]
         github_connection = mock_github.return_value
 
         mock_repository = MagicMock()
@@ -123,7 +157,7 @@ class TestGetReposIterator(unittest.TestCase):
         # Assert that the repository method was called with the correct arguments for each repository in the list
         expected_calls = [
             unittest.mock.call("org", "repo1"),
-            unittest.mock.call("org", "repo2"),
+            unittest.mock.call("org2", "repo2"),
         ]
         github_connection.repository.assert_has_calls(expected_calls)
 

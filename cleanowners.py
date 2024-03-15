@@ -7,6 +7,15 @@ import env
 import github3
 
 
+def get_org(github_connection, organization):
+    """Get the organization object"""
+    try:
+        return github_connection.organization(organization)
+    except github3.exceptions.NotFoundError:
+        print(f"Organization {organization} not found")
+        return None
+
+
 def main():  # pragma: no cover
     """Run the main program"""
 
@@ -35,6 +44,17 @@ def main():  # pragma: no cover
     no_codeowners_count = 0
     codeowners_count = 0
     users_count = 0
+
+    if organization and not repository_list:
+        gh_org = get_org(github_connection, organization)
+        if not gh_org:
+            raise ValueError(
+                f"""Organization {organization} is not an organization and
+            REPOSITORY environment variable was not set.
+            Please set valid ORGANIZATION or set REPOSITORY environment
+            variable
+            """
+            )
 
     # Get the repositories from the organization or list of repositories
     repos = get_repos_iterator(organization, repository_list, github_connection)
@@ -90,10 +110,16 @@ def main():  # pragma: no cover
         usernames = get_usernames_from_codeowners(codeowners_file_contents)
 
         for username in usernames:
+            org = organization if organization else repo.owner.login
+            gh_org = get_org(github_connection, org)
+            if not gh_org:
+                print(f"Owner {org} of repo {repo} is not an organization.")
+                break
+
             # Check to see if the username is a member of the organization
-            if not github_connection.organization(organization).is_member(username):
+            if not gh_org.is_member(username):
                 print(
-                    f"\t{username} is not a member of {organization}. Suggest removing them from {repo.full_name}"
+                    f"\t{username} is not a member of {org}. Suggest removing them from {repo.full_name}"
                 )
                 users_count += 1
                 if not dry_run:
@@ -148,10 +174,10 @@ def get_repos_iterator(organization, repository_list, github_connection):
         repos = github_connection.organization(organization).repositories()
     else:
         # Get the repositories from the repository_list
-        for repo in repository_list:
-            repos.append(
-                github_connection.repository(repo.split("/")[0], repo.split("/")[1])
-            )
+        for full_repo_path in repository_list:
+            org = full_repo_path.split("/")[0]
+            repo = full_repo_path.split("/")[1]
+            repos.append(github_connection.repository(org, repo))
 
     return repos
 

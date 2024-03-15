@@ -1,4 +1,5 @@
 """Test cases for the auth module."""
+
 import unittest
 from unittest.mock import MagicMock, patch
 
