@@ -50,10 +50,10 @@ def main():  # pragma: no cover
         if not gh_org:
             raise ValueError(
                 f"""Organization {organization} is not an organization and
-                    REPOSITORY environment variable was not set.
-                    Please set valid ORGANIZATION or set REPOSITORY environment
-                    variable
-                """
+            REPOSITORY environment variable was not set.
+            Please set valid ORGANIZATION or set REPOSITORY environment
+            variable
+            """
             )
 
     # Get the repositories from the organization or list of repositories

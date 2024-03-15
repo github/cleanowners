@@ -1,6 +1,6 @@
 """Test the functions in the cleanowners module."""
 
-import os
+import github3
 import unittest
 import uuid
 from unittest.mock import MagicMock, patch
@@ -10,7 +10,6 @@ from cleanowners import (
     get_org,
     get_repos_iterator,
     get_usernames_from_codeowners,
-    main,
 )
 
 
@@ -84,40 +83,36 @@ class TestGetUsernamesFromCodeowners(unittest.TestCase):
         self.assertEqual(result, expected_usernames)
 
 
-class TestCleanOwnersWithInvalidOrganizationAndNoRepositoryList(unittest.TestCase):
-    """
-    Test the main function in cleanowners.py with an invalid organization and
-    no repository list.
-    """
-
-    @patch("github3.login", "get_env_vars")
-    def test_get_organization_succeeds(self, mock_github, mock_env_vars):
-        """Test the get_organization function."""
-        organization = "my_organization"
-        github_connection = mock_github.return_value
-        env_vars = mock_env_vars.return_value
-
-        result = get_org(github_connection, organization)
-
-        github_connection.organization.assert_called_once_with(organization)
-        self.assertEqual(result, github_connection.organization.return_value)
-
-        with self.assertRaises(ValueError):
-            main()
-
 class TestGetOrganization(unittest.TestCase):
-    """Test the get_organization function in evergreen.py"""
+    """Test the get_org function in cleanowners.py"""
 
     @patch("github3.login")
     def test_get_organization_succeeds(self, mock_github):
-        """Test the get_organization function."""
+        """Test the organization is valid."""
         organization = "my_organization"
         github_connection = mock_github.return_value
+
+        mock_organization = MagicMock()
+        github_connection.organization.return_value = mock_organization
 
         result = get_org(github_connection, organization)
 
         github_connection.organization.assert_called_once_with(organization)
-        self.assertEqual(result, github_connection.organization.return_value)
+        self.assertEqual(result, mock_organization)
+
+    @patch("github3.login")
+    def test_get_organization_fails(self, mock_github):
+        """Test the organization is not valid."""
+        organization = "my_organization"
+        github_connection = mock_github.return_value
+
+        github_connection.organization.side_effect = github3.exceptions.NotFoundError(
+            resp=MagicMock(status_code=404)
+        )
+        result = get_org(github_connection, organization)
+
+        github_connection.organization.assert_called_once_with(organization)
+        self.assertIsNone(result)
 
 
 class TestGetReposIterator(unittest.TestCase):
