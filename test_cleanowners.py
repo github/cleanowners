@@ -1,10 +1,10 @@
 """Test the functions in the cleanowners module."""
 
-import github3
 import unittest
 import uuid
 from unittest.mock import MagicMock, patch
 
+import github3
 from cleanowners import (
     commit_changes,
     get_org,
