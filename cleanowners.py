@@ -9,13 +9,11 @@ import github3
 
 def get_org(github_connection, organization):
     """Get the organization object"""
-    if organization:
-        try:
-            return github_connection.organization(organization)
-        except github3.exceptions.NotFoundError:
-            print(f"Organization {organization} not found")
-            return None
-    return None
+    try:
+        return github_connection.organization(organization)
+    except github3.exceptions.NotFoundError:
+        print(f"Organization {organization} not found")
+        return None
 
 
 def main():  # pragma: no cover
@@ -42,10 +40,16 @@ def main():  # pragma: no cover
     codeowners_count = 0
     users_count = 0
 
-    gh_org = get_org(github_connection, organization)
-    if not gh_org:
-        print(f"Organization {organization} not found")
-        return
+    if organization and not repository_list:
+        gh_org = get_org(github_connection, organization)
+        if not gh_org:
+            raise ValueError(
+                f"""Organization {organization} is not an organization and
+                    REPOSITORY environment variable was not set.
+                    Please set valid ORGANIZATION or set REPOSITORY environment
+                    variable
+                """
+            )
 
     # Get the repositories from the organization or list of repositories
     repos = get_repos_iterator(organization, repository_list, github_connection)

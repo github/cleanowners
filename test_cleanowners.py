@@ -1,5 +1,6 @@
 """Test the functions in the cleanowners module."""
 
+import os
 import unittest
 import uuid
 from unittest.mock import MagicMock, patch
@@ -9,6 +10,7 @@ from cleanowners import (
     get_org,
     get_repos_iterator,
     get_usernames_from_codeowners,
+    main,
 )
 
 
@@ -82,11 +84,32 @@ class TestGetUsernamesFromCodeowners(unittest.TestCase):
         self.assertEqual(result, expected_usernames)
 
 
+class TestCleanOwnersWithInvalidOrganizationAndNoRepositoryList(unittest.TestCase):
+    """
+    Test the main function in cleanowners.py with an invalid organization and
+    no repository list.
+    """
+
+    @patch("github3.login", "get_env_vars")
+    def test_get_organization_succeeds(self, mock_github, mock_env_vars):
+        """Test the get_organization function."""
+        organization = "my_organization"
+        github_connection = mock_github.return_value
+        env_vars = mock_env_vars.return_value
+
+        result = get_org(github_connection, organization)
+
+        github_connection.organization.assert_called_once_with(organization)
+        self.assertEqual(result, github_connection.organization.return_value)
+
+        with self.assertRaises(ValueError):
+            main()
+
 class TestGetOrganization(unittest.TestCase):
     """Test the get_organization function in evergreen.py"""
 
     @patch("github3.login")
-    def test_get_organization(self, mock_github):
+    def test_get_organization_succeeds(self, mock_github):
         """Test the get_organization function."""
         organization = "my_organization"
         github_connection = mock_github.return_value
@@ -94,7 +117,6 @@ class TestGetOrganization(unittest.TestCase):
         result = get_org(github_connection, organization)
 
         github_connection.organization.assert_called_once_with(organization)
-
         self.assertEqual(result, github_connection.organization.return_value)
 
 
