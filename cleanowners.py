@@ -23,6 +23,9 @@ def main():  # pragma: no cover
     (
         organization,
         repository_list,
+        gh_app_id,
+        gh_app_installation_id,
+        gh_app_private_key_bytes,
         token,
         ghe,
         exempt_repositories_list,
@@ -33,7 +36,9 @@ def main():  # pragma: no cover
     ) = env.get_env_vars()
 
     # Auth to GitHub.com or GHE
-    github_connection = auth.auth_to_github(token, ghe)
+    github_connection = auth.auth_to_github(
+        gh_app_id, gh_app_installation_id, gh_app_private_key_bytes, token, ghe
+    )
     pull_count = 0
     eligble_for_pr_count = 0
     no_codeowners_count = 0
