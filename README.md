@@ -50,12 +50,14 @@ on:
     - cron: '3 2 1 * *'
 
 permissions:
-  issues: write
+  contents: read
 
 jobs:
   cleanowners:
     name: cleanowners
     runs-on: ubuntu-latest
+    permissions:
+    issues: write
 
     steps:
       - name: Run cleanowners action
@@ -76,12 +78,14 @@ on:
     - cron: '3 2 1 * *'
 
 permissions:
-  issues: write
+  contents: read
 
 jobs:
   cleanowners:
     name: cleanowners
     runs-on: ubuntu-latest
+    permissions:
+    issues: write
 
     steps:
       - name: Run cleanowners action
@@ -106,12 +110,14 @@ on:
     - cron: '3 2 1 * *'
 
 permissions:
-  issues: write
+  contents: read
 
 jobs:
   cleanowners:
     name: cleanowners
     runs-on: ubuntu-latest
+    permissions:
+        issues: write
 
     steps:
       - name: Run cleanowners action
