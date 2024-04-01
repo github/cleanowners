@@ -73,7 +73,7 @@ jobs:
     name: cleanowners
     runs-on: ubuntu-latest
     permissions:
-    issues: write
+      issues: write
 
     steps:
       - name: Run cleanowners action
@@ -101,7 +101,7 @@ jobs:
     name: cleanowners
     runs-on: ubuntu-latest
     permissions:
-    issues: write
+      issues: write
 
     steps:
       - name: Run cleanowners action
@@ -133,7 +133,7 @@ jobs:
     name: cleanowners
     runs-on: ubuntu-latest
     permissions:
-        issues: write
+      issues: write
 
     steps:
       - name: Run cleanowners action
