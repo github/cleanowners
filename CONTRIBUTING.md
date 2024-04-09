@@ -55,7 +55,7 @@ A good bug report shouldn't leave others needing to chase you up for more inform
 
 We use GitHub issues to track bugs and errors. If you run into an issue with the project:
 
-- Open an [Issue](https://github.com/github/cleanowners/issues/new). (Since we can't be sure at this point whether it is a bug or not, we ask you not to talk about a bug yet and not to label the issue.)
+- Open an [Issue](https://github.com/github/cleanowners/issues/new).
 - Explain the behavior you would expect and the actual behavior.
 - Please provide as much context as possible and describe the *reproduction steps* that someone else can follow to recreate the issue on their own. This usually includes your code. For good bug reports you should isolate the problem and create a reduced test case.
 - Provide the information you collected in the previous section.
@@ -88,6 +88,10 @@ Enhancement suggestions are tracked as [GitHub issues](https://github.com/github
 - **Describe the current behavior** and **explain which behavior you expected to see instead** and why. At this point you can also tell which alternatives do not work for you.
 - You may want to **include screenshots and animated GIFs** which help you demonstrate the steps or point out the part which the suggestion is related to.
 - **Explain why this enhancement would be useful** to most cleanowners users.
+
+### Pull Request Standards
+
+We are using [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) to standardize our pull request titles. This allows us to automatically generate labels and changelogs and follow semantic versioning. Please follow the commit message format when creating a pull request. What pull request title prefixes are expected are in the [pull_request_template.md](.github/pull_request_template.md) that is shown when creating a pull request.
 
 ## Releases
 
