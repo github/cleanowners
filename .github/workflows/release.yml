@@ -14,6 +14,7 @@ jobs:
     outputs:
       full-tag: ${{ steps.release-drafter.outputs.tag_name }}
       short-tag: ${{ steps.get_tag_name.outputs.SHORT_TAG }}
+      body: ${{ steps.release-drafter.outputs.body }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -29,8 +30,8 @@ jobs:
       - name: Get the short tag
         id: get_tag_name
         run: |
-          short-tag=$(echo ${{ steps.release-drafter.outputs.tag_name }} | cut -d. -f1)
-          echo "SHORT_TAG=$short-tag" >> $GITHUB_OUTPUT
+          short_tag=$(echo ${{ steps.release-drafter.outputs.tag_name }} | cut -d. -f1)
+          echo "SHORT_TAG=$short_tag" >> $GITHUB_OUTPUT
   create_action_images:
     needs: create_release
     runs-on: ubuntu-latest
@@ -62,3 +63,18 @@ jobs:
           platforms: linux/amd64,linux/arm64
           provenance: false
           sbom: false
+  create_discussion:
+    needs: create_release
+    runs-on: ubuntu-latest
+    permissions:
+      discussions: write
+    steps:
+      - name: Create an announcement discussion for release
+        uses: abirismyname/create-discussion@v1.2.0
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          title: ${{ needs.create_release.outputs.full-tag }}
+          body: ${{ needs.create_release.outputs.body }}
+          repository-id: "R_kgDOLLtong"
+          category-id: "DIC_kwDOLLtons4Cc0Oa"

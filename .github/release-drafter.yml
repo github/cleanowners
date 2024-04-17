@@ -40,3 +40,25 @@ version-resolver:
       - 'maintenance'
       - 'documentation'
   default: patch
+autolabeler:
+  - label: 'automation'
+    title:
+      - '/^(build|ci|perf|refactor|test).*/i'
+  - label: 'enhancement'
+    title:
+      - '/^(chore|style).*/i'
+  - label: 'documentation'
+    title:
+      - '/^docs.*/i'
+  - label: 'feature'
+    title:
+      - '/^feat.*/i'
+  - label: 'fix'
+    title:
+      - '/^fix.*/i'
+  - label: 'infrastructure'
+    title:
+      - '/^infrastructure.*/i'
+  - label: 'revert'
+    title:
+      - '/^revert.*/i'
