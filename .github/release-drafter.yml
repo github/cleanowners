@@ -4,9 +4,9 @@ tag-template: 'v$RESOLVED_VERSION'
 template: |
   # Changelog
   $CHANGES
-  
-  See details of [all code changes](https://github.com/github/cleanowners/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION) since previous release 
-  
+
+  See details of [all code changes](https://github.com/github/cleanowners/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION) since previous release
+
 categories:
   - title: '🚀 Features'
     labels:
@@ -23,6 +23,7 @@ categories:
       - 'automation'
       - 'documentation'
       - 'dependencies'
+      - 'revert'
   - title: '🏎 Performance'
     label: 'performance'
 change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
