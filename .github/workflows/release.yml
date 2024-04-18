@@ -49,6 +49,7 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v4
       - name: Push Docker Image
         if: ${{ success() }}
         uses: docker/build-push-action@v5
