@@ -61,7 +61,7 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.create_release.outputs.full-tag }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.create_release.outputs.short-tag }}
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           provenance: false
           sbom: false
   create_discussion:
