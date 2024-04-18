@@ -23,6 +23,7 @@ categories:
       - 'automation'
       - 'documentation'
       - 'dependencies'
+      - 'maintenance'
       - 'revert'
   - title: '🏎 Performance'
     label: 'performance'
@@ -36,9 +37,9 @@ version-resolver:
       - 'enhancement'
   patch:
     labels:
-      - 'bug'
-      - 'maintenance'
+      - 'fix'
       - 'documentation'
+      - 'maintenance'
   default: patch
 autolabeler:
   - label: 'automation'
@@ -46,19 +47,22 @@ autolabeler:
       - '/^(build|ci|perf|refactor|test).*/i'
   - label: 'enhancement'
     title:
-      - '/^(chore|style).*/i'
+      - '/^(style).*/i'
   - label: 'documentation'
     title:
-      - '/^docs.*/i'
+      - '/^(docs).*/i'
   - label: 'feature'
     title:
-      - '/^feat.*/i'
+      - '/^(feat).*/i'
   - label: 'fix'
     title:
-      - '/^fix.*/i'
+      - '/^(fix).*/i'
   - label: 'infrastructure'
     title:
-      - '/^infrastructure.*/i'
+      - '/^(infrastructure).*/i'
+  - label: 'maintenance'
+    title:
+      - '/^(chore|maintenance).*/i'
   - label: 'revert'
     title:
-      - '/^revert.*/i'
+      - '/^(revert).*/i'

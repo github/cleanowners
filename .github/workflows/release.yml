@@ -2,6 +2,7 @@
 name: Release
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -77,5 +78,5 @@ jobs:
         with:
           title: ${{ needs.create_release.outputs.full-tag }}
           body: ${{ needs.create_release.outputs.body }}
-          repository-id: "R_kgDOLLtong"
-          category-id: "DIC_kwDOLLtons4Cc0Oa"
+          repository-id: ${{ secrets.RELEASE_DISCUSSION_REPOSITORY_ID }}
+          category-id: ${{ secrets.RELEASE_DISCUSSION_CATEGORY_ID }}
