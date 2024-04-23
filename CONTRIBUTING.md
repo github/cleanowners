@@ -53,18 +53,7 @@ A good bug report shouldn't leave others needing to chase you up for more inform
 <!-- omit in toc -->
 ### How Do I Submit a Good Bug Report?
 
-We use GitHub issues to track bugs and errors. If you run into an issue with the project:
-
-- Open an [Issue](https://github.com/github/cleanowners/issues/new).
-- Explain the behavior you would expect and the actual behavior.
-- Please provide as much context as possible and describe the *reproduction steps* that someone else can follow to recreate the issue on their own. This usually includes your code. For good bug reports you should isolate the problem and create a reduced test case.
-- Provide the information you collected in the previous section.
-
-Once it's filed:
-
-- The project team will label the issue accordingly.
-- A team member will try to reproduce the issue with your provided steps. If there are no reproduction steps or no obvious way to reproduce the issue, the team will ask you for those steps and mark the issue as `needs-repro`. Bugs with the `needs-repro` tag will not be addressed until they are reproduced.
-- If the team is able to reproduce the issue, it will be marked `needs-fix`, as well as possibly other tags (such as `critical`), and the issue will be left to be implemented by someone.
+Please submit a bug report using our [GitHub Issues template](https://github.com/github/cleanowners/issues/new?template=bug_report.yml).
 
 ## Suggesting Enhancements
 
@@ -81,13 +70,7 @@ This section guides you through submitting an enhancement suggestion for cleanow
 <!-- omit in toc -->
 ### How Do I Submit a Good Enhancement Suggestion?
 
-Enhancement suggestions are tracked as [GitHub issues](https://github.com/github/cleanowners/issues).
-
-- Use a **clear and descriptive title** for the issue to identify the suggestion.
-- Provide a **step-by-step description of the suggested enhancement** in as many details as possible.
-- **Describe the current behavior** and **explain which behavior you expected to see instead** and why. At this point you can also tell which alternatives do not work for you.
-- You may want to **include screenshots and animated GIFs** which help you demonstrate the steps or point out the part which the suggestion is related to.
-- **Explain why this enhancement would be useful** to most cleanowners users.
+Please submit an enhancement suggestion using our [GitHub Issues template](https://github.com/github/cleanowners/issues/new?template=feature_request.yml).
 
 ### Pull Request Standards
 
@@ -95,17 +78,4 @@ We are using [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.
 
 ## Releases
 
-To release a new version, maintainers are to release new versions following semantic versioning and via GitHub Releases.
-Once the code is ready to release please do the following
-
-1. Create a [GitHub release](https://github.com/github/cleanowners/releases) based off the current draft and review release notes
-2. Ensure that the versioning is correct given the content of the release
-3. Check the box to release it to the GitHub Marketplace
-4. Publish the release
-5. Clone the repository at the release tag locally or in a codespace
-6. Authenticate to ghcr.io using [these instructions](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry)
-7. `docker build -t ghcr.io/github/cleanowners:v1 .` where v1 is the current major version number
-8. `docker build -t ghcr.io/github/cleanowners:v1.0.0 .` where v1.0.0 is the full version number
-9. `docker push ghcr.io/github/cleanowners:v1` where v1 is the current major version number
-10. `docker push ghcr.io/github/cleanowners:v1.0.0` where v1.0.0 is the full version number
-11. Update the `action.yml` and `README.md` instructions to point to the new docker container if its a major version number change
+Releases are automated but if you need to manually initiate a release you can do so through the GitHub Actions UI.  If you have permissions to do so, you can navigate to the [Actions tab](https://github.com/github/stale-repos/actions/workflows/release.yml) and select the `Run workflow` button.  This will allow you to select the branch to release from and the version to release.
