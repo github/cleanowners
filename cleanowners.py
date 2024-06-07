@@ -133,6 +133,11 @@ def main():  # pragma: no cover
         # Update the CODEOWNERS file if usernames were removed
         if file_changed:
             eligble_for_pr_count += 1
+            new_usernames = get_usernames_from_codeowners(codeowners_file_contents_new)
+            if len(new_usernames) == 0:
+                print(
+                    f"\twarning: All usernames removed from CODEOWNERS in {repo.full_name}."
+                )
             try:
                 pull = commit_changes(
                     title,
@@ -182,7 +187,7 @@ def get_repos_iterator(organization, repository_list, github_connection):
     return repos
 
 
-def get_usernames_from_codeowners(codeowners_file_contents):
+def get_usernames_from_codeowners(codeowners_file_contents, ignore_teams=True):
     """Extract the usernames from the CODEOWNERS file"""
     usernames = []
     for line in codeowners_file_contents.decoded.splitlines():
@@ -201,7 +206,9 @@ def get_usernames_from_codeowners(codeowners_file_contents):
                     handle = handle.split()[0]
                     # Identify team handles by the presence of a slash.
                     # Ignore teams because non-org members cannot be in a team.
-                    if "/" not in handle:
+                    if ignore_teams and "/" not in handle:
+                        usernames.append(handle)
+                    elif not ignore_teams:
                         usernames.append(handle)
     return usernames
 

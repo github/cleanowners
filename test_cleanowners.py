@@ -63,7 +63,7 @@ class TestCommitChanges(unittest.TestCase):
 class TestGetUsernamesFromCodeowners(unittest.TestCase):
     """Test the get_usernames_from_codeowners function in cleanowners.py"""
 
-    def test_get_usernames_from_codeowners(self):
+    def test_get_usernames_from_codeowners_ignore_teams(self):
         """Test the get_usernames_from_codeowners function."""
         codeowners_file_contents = MagicMock()
         codeowners_file_contents.decoded = """
@@ -79,6 +79,25 @@ class TestGetUsernamesFromCodeowners(unittest.TestCase):
         expected_usernames = ["user1", "user2", "user3", "user4"]
 
         result = get_usernames_from_codeowners(codeowners_file_contents)
+
+        self.assertEqual(result, expected_usernames)
+
+    def test_get_usernames_from_codeowners_with_teams(self):
+        """Test the get_usernames_from_codeowners function."""
+        codeowners_file_contents = MagicMock()
+        codeowners_file_contents.decoded = """
+        # Comment
+        @user1
+        @user2
+        @org/team
+        # Another comment
+        @user3 @user4
+        """.encode(
+            "ASCII"
+        )
+        expected_usernames = ["user1", "user2", "org/team", "user3", "user4"]
+
+        result = get_usernames_from_codeowners(codeowners_file_contents, False)
 
         self.assertEqual(result, expected_usernames)
 
