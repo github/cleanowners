@@ -41,6 +41,7 @@ def get_env_vars(
     str,
     str,
     str,
+    bool,
 ]:
     """
     Get the environment variables for use in the action.
@@ -61,6 +62,7 @@ def get_env_vars(
         title (str): The title to use for the pull request
         body (str): The body to use for the pull request
         message (str): Commit message to use
+        issue_report (bool): Whether or not to create an issue report with the results
 
     """
     if not test:
@@ -155,6 +157,15 @@ def get_env_vars(
             "Remove users no longer in this organization from CODEOWNERS file"
         )
 
+    issue_report = os.getenv("ISSUE_REPORT")
+    issue_report = issue_report.lower() if issue_report else None
+    if issue_report:
+        if issue_report not in ("true", "false"):
+            raise ValueError("ISSUE_REPORT environment variable not 'true' or 'false'")
+        issue_report_bool = issue_report == "true"
+    else:
+        issue_report_bool = False
+
     return (
         organization,
         repositories_list,
@@ -168,4 +179,5 @@ def get_env_vars(
         title,
         body,
         commit_message,
+        issue_report_bool,
     )
