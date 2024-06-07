@@ -113,6 +113,7 @@ def main():  # pragma: no cover
         usernames = get_usernames_from_codeowners(codeowners_file_contents)
 
         usernames_to_remove = []
+        codeowners_file_contents_new = None
         for username in usernames:
             org = organization if organization else repo.owner.login
             gh_org = get_org(github_connection, org)
