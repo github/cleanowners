@@ -5,6 +5,7 @@ import uuid
 import auth
 import env
 import github3
+from markdown_writer import write_to_markdown
 
 
 def get_org(github_connection, organization):
@@ -33,6 +34,7 @@ def main():  # pragma: no cover
         title,
         body,
         commit_message,
+        issue_report,
     ) = env.get_env_vars()
 
     # Auth to GitHub.com or GHE
@@ -59,6 +61,7 @@ def main():  # pragma: no cover
     # Get the repositories from the organization or list of repositories
     repos = get_repos_iterator(organization, repository_list, github_connection)
 
+    repo_and_users_to_remove = {}
     for repo in repos:
         # Check if the repository is in the exempt_repositories_list
         if repo.full_name in exempt_repositories_list:
@@ -109,6 +112,8 @@ def main():  # pragma: no cover
         # Extract the usernames from the CODEOWNERS file
         usernames = get_usernames_from_codeowners(codeowners_file_contents)
 
+        usernames_to_remove = []
+        codeowners_file_contents_new = None
         for username in usernames:
             org = organization if organization else repo.owner.login
             gh_org = get_org(github_connection, org)
@@ -122,6 +127,7 @@ def main():  # pragma: no cover
                     f"\t{username} is not a member of {org}. Suggest removing them from {repo.full_name}"
                 )
                 users_count += 1
+                usernames_to_remove.append(username)
                 if not dry_run:
                     # Remove that username from the codeowners_file_contents
                     file_changed = True
@@ -130,9 +136,18 @@ def main():  # pragma: no cover
                         codeowners_file_contents.decoded.replace(bytes_username, b"")
                     )
 
+        # Store the repo and users to remove for reporting later
+        if usernames_to_remove:
+            repo_and_users_to_remove[repo] = usernames_to_remove
+
         # Update the CODEOWNERS file if usernames were removed
         if file_changed:
             eligble_for_pr_count += 1
+            new_usernames = get_usernames_from_codeowners(codeowners_file_contents_new)
+            if len(new_usernames) == 0:
+                print(
+                    f"\twarning: All usernames removed from CODEOWNERS in {repo.full_name}."
+                )
             try:
                 pull = commit_changes(
                     title,
@@ -166,6 +181,15 @@ def main():  # pragma: no cover
             f"{round((codeowners_count / (codeowners_count + no_codeowners_count)) * 100, 2)}% of repositories had CODEOWNERS files"
         )
 
+    if issue_report:
+        write_to_markdown(
+            users_count,
+            pull_count,
+            no_codeowners_count,
+            codeowners_count,
+            repo_and_users_to_remove,
+        )
+
 
 def get_repos_iterator(organization, repository_list, github_connection):
     """Get the repositories from the organization or list of repositories"""
@@ -182,7 +206,7 @@ def get_repos_iterator(organization, repository_list, github_connection):
     return repos
 
 
-def get_usernames_from_codeowners(codeowners_file_contents):
+def get_usernames_from_codeowners(codeowners_file_contents, ignore_teams=True):
     """Extract the usernames from the CODEOWNERS file"""
     usernames = []
     for line in codeowners_file_contents.decoded.splitlines():
@@ -201,7 +225,9 @@ def get_usernames_from_codeowners(codeowners_file_contents):
                     handle = handle.split()[0]
                     # Identify team handles by the presence of a slash.
                     # Ignore teams because non-org members cannot be in a team.
-                    if "/" not in handle:
+                    if ignore_teams and "/" not in handle:
+                        usernames.append(handle)
+                    elif not ignore_teams:
                         usernames.append(handle)
     return usernames
 

@@ -30,6 +30,7 @@ class TestEnv(unittest.TestCase):
             "ORGANIZATION",
             "REPOSITORY",
             "TITLE",
+            "ISSUE_REPORT",
         ]
         for key in env_keys:
             if key in os.environ:
@@ -67,6 +68,7 @@ class TestEnv(unittest.TestCase):
             TITLE,
             BODY,
             COMMIT_MESSAGE,
+            False,
         )
         result = get_env_vars(True)
         self.assertEqual(result, expected_result)
@@ -104,6 +106,7 @@ class TestEnv(unittest.TestCase):
             TITLE,
             BODY,
             COMMIT_MESSAGE,
+            False,
         )
         result = get_env_vars(True)
         self.assertEqual(result, expected_result)
@@ -141,6 +144,7 @@ class TestEnv(unittest.TestCase):
             TITLE,
             BODY,
             COMMIT_MESSAGE,
+            False,
         )
         result = get_env_vars(True)
         self.assertEqual(result, expected_result)
@@ -156,6 +160,7 @@ class TestEnv(unittest.TestCase):
             "GH_TOKEN": TOKEN,
             "ORGANIZATION": ORGANIZATION,
             "TITLE": TITLE,
+            "ISSUE_REPORT": "true",
         },
     )
     def test_get_env_vars_optional_values(self):
@@ -173,6 +178,7 @@ class TestEnv(unittest.TestCase):
             TITLE,
             BODY,
             COMMIT_MESSAGE,
+            True,
         )
         result = get_env_vars(True)
         self.assertEqual(result, expected_result)
@@ -221,6 +227,7 @@ class TestEnv(unittest.TestCase):
             "Clean up CODEOWNERS file",
             "Consider these updates to the CODEOWNERS file to remove users no longer in this organization.",
             "Remove users no longer in this organization from CODEOWNERS file",
+            False,
         )
         result = get_env_vars(True)
         self.assertEqual(result, expected_result)

@@ -8,6 +8,22 @@ from os.path import dirname, join
 from dotenv import load_dotenv
 
 
+def get_bool_env_var(env_var_name: str, default: bool = False) -> bool:
+    """Get a boolean environment variable.
+
+    Args:
+        env_var_name: The name of the environment variable to retrieve.
+        default: The default value to return if the environment variable is not set.
+
+    Returns:
+        The value of the environment variable as a boolean.
+    """
+    ev = os.environ.get(env_var_name, "")
+    if ev == "" and default:
+        return default
+    return ev.strip().lower() == "true"
+
+
 def get_int_env_var(env_var_name: str) -> int | None:
     """Get an integer environment variable.
 
@@ -41,6 +57,7 @@ def get_env_vars(
     str,
     str,
     str,
+    bool,
 ]:
     """
     Get the environment variables for use in the action.
@@ -61,6 +78,7 @@ def get_env_vars(
         title (str): The title to use for the pull request
         body (str): The body to use for the pull request
         message (str): Commit message to use
+        issue_report (bool): Whether or not to create an issue report with the results
 
     """
     if not test:
@@ -115,14 +133,7 @@ def get_env_vars(
             repository.strip() for repository in exempt_repos.split(",")
         ]
 
-    dry_run = os.getenv("DRY_RUN")
-    dry_run = dry_run.lower() if dry_run else None
-    if dry_run:
-        if dry_run not in ("true", "false"):
-            raise ValueError("DRY_RUN environment variable not 'true' or 'false'")
-        dry_run_bool = dry_run == "true"
-    else:
-        dry_run_bool = False
+    dry_run = get_bool_env_var("DRY_RUN")
 
     title = os.getenv("TITLE")
     # make sure that title is a string with less than 70 characters
@@ -155,6 +166,8 @@ def get_env_vars(
             "Remove users no longer in this organization from CODEOWNERS file"
         )
 
+    issue_report = get_bool_env_var("ISSUE_REPORT")
+
     return (
         organization,
         repositories_list,
@@ -164,8 +177,9 @@ def get_env_vars(
         token,
         ghe,
         exempt_repositories_list,
-        dry_run_bool,
+        dry_run,
         title,
         body,
         commit_message,
+        issue_report,
     )
