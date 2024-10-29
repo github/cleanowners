@@ -61,6 +61,7 @@ class TestEnv(unittest.TestCase):
             None,
             None,
             b"",
+            False,
             TOKEN,
             "",
             ["repo4", "repo5"],
@@ -99,6 +100,7 @@ class TestEnv(unittest.TestCase):
             12345,
             678910,
             b"hello",
+            False,
             "",
             "",
             ["repo4", "repo5"],
@@ -110,6 +112,27 @@ class TestEnv(unittest.TestCase):
         )
         result = get_env_vars(True)
         self.assertEqual(result, expected_result)
+
+    @patch.dict(
+        os.environ,
+        {
+            "ORGANIZATION": "my_organization",
+            "GH_APP_ID": "12345",
+            "GH_APP_INSTALLATION_ID": "",
+            "GH_APP_PRIVATE_KEY": "",
+            "GH_TOKEN": "",
+        },
+        clear=True,
+    )
+    def test_get_env_vars_auth_with_github_app_installation_missing_inputs(self):
+        """Test that an error is raised there are missing inputs for the gh app"""
+        with self.assertRaises(ValueError) as context_manager:
+            get_env_vars(True)
+        the_exception = context_manager.exception
+        self.assertEqual(
+            str(the_exception),
+            "GH_APP_ID set and GH_APP_INSTALLATION_ID or GH_APP_PRIVATE_KEY variable not set",
+        )
 
     @patch.dict(
         os.environ,
@@ -137,6 +160,7 @@ class TestEnv(unittest.TestCase):
             None,
             None,
             b"",
+            False,
             TOKEN,
             "",
             ["repo4", "repo5"],
@@ -171,6 +195,7 @@ class TestEnv(unittest.TestCase):
             None,
             None,
             b"",
+            False,
             TOKEN,
             "",
             [],
@@ -220,6 +245,7 @@ class TestEnv(unittest.TestCase):
             None,
             None,
             b"",
+            False,
             TOKEN,
             "",
             [],
