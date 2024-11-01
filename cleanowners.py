@@ -27,6 +27,7 @@ def main():  # pragma: no cover
         gh_app_id,
         gh_app_installation_id,
         gh_app_private_key_bytes,
+        gh_app_enterprise_only,
         token,
         ghe,
         exempt_repositories_list,
@@ -39,8 +40,14 @@ def main():  # pragma: no cover
 
     # Auth to GitHub.com or GHE
     github_connection = auth.auth_to_github(
-        gh_app_id, gh_app_installation_id, gh_app_private_key_bytes, token, ghe
+        token,
+        gh_app_id,
+        gh_app_installation_id,
+        gh_app_private_key_bytes,
+        ghe,
+        gh_app_enterprise_only,
     )
+
     pull_count = 0
     eligble_for_pr_count = 0
     no_codeowners_count = 0
@@ -240,12 +247,12 @@ def commit_changes(
     commit_message,
     codeowners_filepath,
 ):
-    """Commit the changes to the repo and open a pull reques and return the pull request object"""
+    """Commit the changes to the repo and open a pull request and return the pull request object"""
     default_branch = repo.default_branch
     # Get latest commit sha from default branch
-    default_branch_commit = repo.ref("heads/" + default_branch).object.sha
+    default_branch_commit = repo.ref(f"heads/{default_branch}").object.sha
     front_matter = "refs/heads/"
-    branch_name = "codeowners-" + str(uuid.uuid4())
+    branch_name = f"codeowners-{str(uuid.uuid4())}"
     repo.create_ref(front_matter + branch_name, default_branch_commit)
     repo.file_contents(codeowners_filepath).update(
         message=commit_message,
