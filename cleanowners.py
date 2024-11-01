@@ -171,6 +171,28 @@ def main():  # pragma: no cover
                 continue
 
     # Report the statistics from this run
+    print_stats(
+        pull_count=pull_count,
+        eligble_for_pr_count=eligble_for_pr_count,
+        no_codeowners_count=no_codeowners_count,
+        codeowners_count=codeowners_count,
+        users_count=users_count,
+    )
+
+    if issue_report:
+        write_to_markdown(
+            users_count,
+            pull_count,
+            no_codeowners_count,
+            codeowners_count,
+            repo_and_users_to_remove,
+        )
+
+
+def print_stats(
+    pull_count, eligble_for_pr_count, no_codeowners_count, codeowners_count, users_count
+):
+    """Print the statistics from this run to the terminal output"""
     print(f"Found {users_count} users to remove")
     print(f"Created {pull_count} pull requests successfully")
     print(f"Skipped {no_codeowners_count} repositories without a CODEOWNERS file")
@@ -186,15 +208,6 @@ def main():  # pragma: no cover
     else:
         print(
             f"{round((codeowners_count / (codeowners_count + no_codeowners_count)) * 100, 2)}% of repositories had CODEOWNERS files"
-        )
-
-    if issue_report:
-        write_to_markdown(
-            users_count,
-            pull_count,
-            no_codeowners_count,
-            codeowners_count,
-            repo_and_users_to_remove,
         )
 
 

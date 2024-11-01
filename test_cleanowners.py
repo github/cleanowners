@@ -3,6 +3,7 @@
 import unittest
 import uuid
 from unittest.mock import MagicMock, patch
+from io import StringIO
 
 import github3
 from cleanowners import (
@@ -10,6 +11,7 @@ from cleanowners import (
     get_org,
     get_repos_iterator,
     get_usernames_from_codeowners,
+    print_stats,
 )
 
 
@@ -182,3 +184,49 @@ class TestGetReposIterator(unittest.TestCase):
 
         # Assert that the function returned the expected result
         self.assertEqual(result, mock_repository_list)
+
+
+class TestPrintStats(unittest.TestCase):
+    """Test the print_stats function in cleanowners.py"""
+
+    @patch("sys.stdout", new_callable=StringIO)
+    def test_print_stats_all_counts(self, mock_stdout):
+        """Test the print_stats function with all counts."""
+        print_stats(5, 10, 2, 3, 4)
+        expected_output = (
+            "Found 4 users to remove\n"
+            "Created 5 pull requests successfully\n"
+            "Skipped 2 repositories without a CODEOWNERS file\n"
+            "Processed 3 repositories with a CODEOWNERS file\n"
+            "50.0% of eligible repositories had pull requests created\n"
+            "60.0% of repositories had CODEOWNERS files\n"
+        )
+        self.assertEqual(mock_stdout.getvalue(), expected_output)
+
+    @patch("sys.stdout", new_callable=StringIO)
+    def test_print_stats_no_pull_requests_needed(self, mock_stdout):
+        """Test the print_stats function with no pull requests needed."""
+        print_stats(0, 0, 2, 3, 4)
+        expected_output = (
+            "Found 4 users to remove\n"
+            "Created 0 pull requests successfully\n"
+            "Skipped 2 repositories without a CODEOWNERS file\n"
+            "Processed 3 repositories with a CODEOWNERS file\n"
+            "No pull requests were needed\n"
+            "60.0% of repositories had CODEOWNERS files\n"
+        )
+        self.assertEqual(mock_stdout.getvalue(), expected_output)
+
+    @patch("sys.stdout", new_callable=StringIO)
+    def test_print_stats_no_repositories_processed(self, mock_stdout):
+        """Test the print_stats function with no repositories processed."""
+        print_stats(0, 0, 0, 0, 0)
+        expected_output = (
+            "Found 0 users to remove\n"
+            "Created 0 pull requests successfully\n"
+            "Skipped 0 repositories without a CODEOWNERS file\n"
+            "Processed 0 repositories with a CODEOWNERS file\n"
+            "No pull requests were needed\n"
+            "No repositories were processed\n"
+        )
+        self.assertEqual(mock_stdout.getvalue(), expected_output)
