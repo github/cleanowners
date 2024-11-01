@@ -82,26 +82,7 @@ def main():  # pragma: no cover
 
         # Check to see if repository has a CODEOWNERS file
         file_changed = False
-        codeowners_file_contents = None
-        codeowners_filepath = None
-        try:
-            if repo.file_contents(".github/CODEOWNERS").size > 0:
-                codeowners_file_contents = repo.file_contents(".github/CODEOWNERS")
-                codeowners_filepath = ".github/CODEOWNERS"
-        except github3.exceptions.NotFoundError:
-            pass
-        try:
-            if repo.file_contents("CODEOWNERS").size > 0:
-                codeowners_file_contents = repo.file_contents("CODEOWNERS")
-                codeowners_filepath = "CODEOWNERS"
-        except github3.exceptions.NotFoundError:
-            pass
-        try:
-            if repo.file_contents("docs/CODEOWNERS").size > 0:
-                codeowners_file_contents = repo.file_contents("docs/CODEOWNERS")
-                codeowners_filepath = "docs/CODEOWNERS"
-        except github3.exceptions.NotFoundError:
-            pass
+        codeowners_file_contents, codeowners_filepath = get_codeowners_file(repo)
 
         if not codeowners_file_contents:
             print(f"Skipping {repo.full_name} as it does not have a CODEOWNERS file")
@@ -187,6 +168,43 @@ def main():  # pragma: no cover
             codeowners_count,
             repo_and_users_to_remove,
         )
+
+
+def get_codeowners_file(repo):
+    """
+    Get the CODEOWNERS file from the repository and return
+    the file contents and file path or None if it doesn't exist
+    """
+    codeowners_file_contents = None
+    codeowners_filepath = None
+    try:
+        if (
+            repo.file_contents(".github/CODEOWNERS")
+            and repo.file_contents(".github/CODEOWNERS").size > 0
+        ):
+            codeowners_file_contents = repo.file_contents(".github/CODEOWNERS")
+            codeowners_filepath = ".github/CODEOWNERS"
+    except github3.exceptions.NotFoundError:
+        pass
+    try:
+        if (
+            repo.file_contents("CODEOWNERS")
+            and repo.file_contents("CODEOWNERS").size > 0
+        ):
+            codeowners_file_contents = repo.file_contents("CODEOWNERS")
+            codeowners_filepath = "CODEOWNERS"
+    except github3.exceptions.NotFoundError:
+        pass
+    try:
+        if (
+            repo.file_contents("docs/CODEOWNERS")
+            and repo.file_contents("docs/CODEOWNERS").size > 0
+        ):
+            codeowners_file_contents = repo.file_contents("docs/CODEOWNERS")
+            codeowners_filepath = "docs/CODEOWNERS"
+    except github3.exceptions.NotFoundError:
+        pass
+    return codeowners_file_contents, codeowners_filepath
 
 
 def print_stats(

@@ -8,6 +8,7 @@ from io import StringIO
 import github3
 from cleanowners import (
     commit_changes,
+    get_codeowners_file,
     get_org,
     get_repos_iterator,
     get_usernames_from_codeowners,
@@ -230,3 +231,51 @@ class TestPrintStats(unittest.TestCase):
             "No repositories were processed\n"
         )
         self.assertEqual(mock_stdout.getvalue(), expected_output)
+
+
+class TestGetCodeownersFile(unittest.TestCase):
+    """Test the get_codeowners_file function in cleanowners.py"""
+
+    def setUp(self):
+        self.repo = MagicMock()
+
+    def test_codeowners_in_github_folder(self):
+        """Test that a CODEOWNERS file in the .github folder is considered valid."""
+        self.repo.file_contents.side_effect = lambda path: (
+            MagicMock(size=1) if path == ".github/CODEOWNERS" else None
+        )
+        contents, path = get_codeowners_file(self.repo)
+        self.assertIsNotNone(contents)
+        self.assertEqual(path, ".github/CODEOWNERS")
+
+    def test_codeowners_in_root(self):
+        """Test that a CODEOWNERS file in the root is considered valid."""
+        self.repo.file_contents.side_effect = lambda path: (
+            MagicMock(size=1) if path == "CODEOWNERS" else None
+        )
+        contents, path = get_codeowners_file(self.repo)
+        self.assertIsNotNone(contents)
+        self.assertEqual(path, "CODEOWNERS")
+
+    def test_codeowners_in_docs_folder(self):
+        """Test that a CODEOWNERS file in a docs folder is considered valid."""
+        self.repo.file_contents.side_effect = lambda path: (
+            MagicMock(size=1) if path == "docs/CODEOWNERS" else None
+        )
+        contents, path = get_codeowners_file(self.repo)
+        self.assertIsNotNone(contents)
+        self.assertEqual(path, "docs/CODEOWNERS")
+
+    def test_codeowners_not_found(self):
+        """Test that a missing CODEOWNERS file is not considered valid because it doesn't exist."""
+        self.repo.file_contents.side_effect = lambda path: None
+        contents, path = get_codeowners_file(self.repo)
+        self.assertIsNone(contents)
+        self.assertIsNone(path)
+
+    def test_codeowners_empty_file(self):
+        """Test that an empty CODEOWNERS file is not considered valid because it is empty."""
+        self.repo.file_contents.side_effect = lambda path: MagicMock(size=0)
+        contents, path = get_codeowners_file(self.repo)
+        self.assertIsNone(contents)
+        self.assertIsNone(path)
