@@ -2,8 +2,8 @@
 
 import unittest
 import uuid
-from unittest.mock import MagicMock, patch
 from io import StringIO
+from unittest.mock import MagicMock, patch
 
 import github3
 from cleanowners import (
