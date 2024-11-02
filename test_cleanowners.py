@@ -2,14 +2,17 @@
 
 import unittest
 import uuid
+from io import StringIO
 from unittest.mock import MagicMock, patch
 
 import github3
 from cleanowners import (
     commit_changes,
+    get_codeowners_file,
     get_org,
     get_repos_iterator,
     get_usernames_from_codeowners,
+    print_stats,
 )
 
 
@@ -182,3 +185,97 @@ class TestGetReposIterator(unittest.TestCase):
 
         # Assert that the function returned the expected result
         self.assertEqual(result, mock_repository_list)
+
+
+class TestPrintStats(unittest.TestCase):
+    """Test the print_stats function in cleanowners.py"""
+
+    @patch("sys.stdout", new_callable=StringIO)
+    def test_print_stats_all_counts(self, mock_stdout):
+        """Test the print_stats function with all counts."""
+        print_stats(5, 10, 2, 3, 4)
+        expected_output = (
+            "Found 4 users to remove\n"
+            "Created 5 pull requests successfully\n"
+            "Skipped 2 repositories without a CODEOWNERS file\n"
+            "Processed 3 repositories with a CODEOWNERS file\n"
+            "50.0% of eligible repositories had pull requests created\n"
+            "60.0% of repositories had CODEOWNERS files\n"
+        )
+        self.assertEqual(mock_stdout.getvalue(), expected_output)
+
+    @patch("sys.stdout", new_callable=StringIO)
+    def test_print_stats_no_pull_requests_needed(self, mock_stdout):
+        """Test the print_stats function with no pull requests needed."""
+        print_stats(0, 0, 2, 3, 4)
+        expected_output = (
+            "Found 4 users to remove\n"
+            "Created 0 pull requests successfully\n"
+            "Skipped 2 repositories without a CODEOWNERS file\n"
+            "Processed 3 repositories with a CODEOWNERS file\n"
+            "No pull requests were needed\n"
+            "60.0% of repositories had CODEOWNERS files\n"
+        )
+        self.assertEqual(mock_stdout.getvalue(), expected_output)
+
+    @patch("sys.stdout", new_callable=StringIO)
+    def test_print_stats_no_repositories_processed(self, mock_stdout):
+        """Test the print_stats function with no repositories processed."""
+        print_stats(0, 0, 0, 0, 0)
+        expected_output = (
+            "Found 0 users to remove\n"
+            "Created 0 pull requests successfully\n"
+            "Skipped 0 repositories without a CODEOWNERS file\n"
+            "Processed 0 repositories with a CODEOWNERS file\n"
+            "No pull requests were needed\n"
+            "No repositories were processed\n"
+        )
+        self.assertEqual(mock_stdout.getvalue(), expected_output)
+
+
+class TestGetCodeownersFile(unittest.TestCase):
+    """Test the get_codeowners_file function in cleanowners.py"""
+
+    def setUp(self):
+        self.repo = MagicMock()
+
+    def test_codeowners_in_github_folder(self):
+        """Test that a CODEOWNERS file in the .github folder is considered valid."""
+        self.repo.file_contents.side_effect = lambda path: (
+            MagicMock(size=1) if path == ".github/CODEOWNERS" else None
+        )
+        contents, path = get_codeowners_file(self.repo)
+        self.assertIsNotNone(contents)
+        self.assertEqual(path, ".github/CODEOWNERS")
+
+    def test_codeowners_in_root(self):
+        """Test that a CODEOWNERS file in the root is considered valid."""
+        self.repo.file_contents.side_effect = lambda path: (
+            MagicMock(size=1) if path == "CODEOWNERS" else None
+        )
+        contents, path = get_codeowners_file(self.repo)
+        self.assertIsNotNone(contents)
+        self.assertEqual(path, "CODEOWNERS")
+
+    def test_codeowners_in_docs_folder(self):
+        """Test that a CODEOWNERS file in a docs folder is considered valid."""
+        self.repo.file_contents.side_effect = lambda path: (
+            MagicMock(size=1) if path == "docs/CODEOWNERS" else None
+        )
+        contents, path = get_codeowners_file(self.repo)
+        self.assertIsNotNone(contents)
+        self.assertEqual(path, "docs/CODEOWNERS")
+
+    def test_codeowners_not_found(self):
+        """Test that a missing CODEOWNERS file is not considered valid because it doesn't exist."""
+        self.repo.file_contents.side_effect = lambda path: None
+        contents, path = get_codeowners_file(self.repo)
+        self.assertIsNone(contents)
+        self.assertIsNone(path)
+
+    def test_codeowners_empty_file(self):
+        """Test that an empty CODEOWNERS file is not considered valid because it is empty."""
+        self.repo.file_contents.side_effect = lambda path: MagicMock(size=0)
+        contents, path = get_codeowners_file(self.repo)
+        self.assertIsNone(contents)
+        self.assertIsNone(path)
