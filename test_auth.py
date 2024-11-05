@@ -73,6 +73,22 @@ class TestAuth(unittest.TestCase):
         mock.login_as_app_installation.assert_called_once()
         self.assertEqual(result, mock)
 
+    @patch("github3.login")
+    def test_auth_to_github_invalid_credentials(self, mock_login):
+        """
+        Test the auth_to_github function raises correct ValueError
+        when credentials are present but incorrect.
+        """
+        mock_login.return_value = None
+        with self.assertRaises(ValueError) as context_manager:
+            auth.auth_to_github("not_a_valid_token", "", "", b"", "", False)
+
+        the_exception = context_manager.exception
+        self.assertEqual(
+            str(the_exception),
+            "Unable to authenticate to GitHub",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
