@@ -7,6 +7,7 @@ def write_to_markdown(
     no_codeowners_count,
     codeowners_count,
     repo_and_users_to_remove,
+    repos_missing_codeowners,
 ):
     """Write the results to a markdown file"""
     with open("report.md", "w", encoding="utf-8") as file:
@@ -25,3 +26,8 @@ def write_to_markdown(
                 for user in users:
                     file.write(f"- {user}\n")
                 file.write("\n")
+        if repos_missing_codeowners:
+            file.write("## Repositories Missing CODEOWNERS\n")
+            for repo in repos_missing_codeowners:
+                file.write(f"- {repo}\n")
+            file.write("\n")
