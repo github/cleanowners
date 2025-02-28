@@ -1,4 +1,4 @@
-""" Unit tests for the write_to_markdown function in markdown_writer.py """
+"""Unit tests for the write_to_markdown function in markdown_writer.py"""
 
 import unittest
 from unittest.mock import call, mock_open, patch
@@ -13,7 +13,7 @@ class TestWriteToMarkdown(unittest.TestCase):
         """Test that the function writes the correct markdown when there are no users to remove"""
         mock_file = mock_open()
         with patch("builtins.open", mock_file):
-            write_to_markdown(0, 0, 2, 3, {})
+            write_to_markdown(0, 0, 2, 3, {}, [])
             mock_file().write.assert_called_once_with(
                 "# Cleanowners Report\n\n"
                 "## Overall Stats\n"
@@ -28,7 +28,7 @@ class TestWriteToMarkdown(unittest.TestCase):
         mock_file = mock_open()
         repo_users = {"repo1": ["user1", "user2"], "repo2": ["user3"]}
         with patch("builtins.open", mock_file):
-            write_to_markdown(1, 2, 3, 4, repo_users)
+            write_to_markdown(1, 2, 3, 4, repo_users, [])
             calls = [
                 call(
                     "# Cleanowners Report\n\n"
@@ -49,11 +49,33 @@ class TestWriteToMarkdown(unittest.TestCase):
             ]
             mock_file().write.assert_has_calls(calls, any_order=False)
 
+    def test_write_with_repos_missing_codeowners(self):
+        """Test that the function writes the correct markdown when there are repos missing CODEOWNERS"""
+        mock_file = mock_open()
+        repos_missing_codeowners = ["repo1", "repo2"]
+        with patch("builtins.open", mock_file):
+            write_to_markdown(0, 0, 2, 0, {}, repos_missing_codeowners)
+            calls = [
+                call(
+                    "# Cleanowners Report\n\n"
+                    "## Overall Stats\n"
+                    "0 Users to Remove\n"
+                    "0 Pull Requests created\n"
+                    "2 Repositories with no CODEOWNERS file\n"
+                    "0 Repositories with CODEOWNERS file\n"
+                ),
+                call("## Repositories Missing CODEOWNERS\n"),
+                call("- repo1\n"),
+                call("- repo2\n"),
+                call("\n"),
+            ]
+            mock_file().write.assert_has_calls(calls, any_order=False)
+
     def test_write_with_empty_inputs(self):
         """Test that the function writes the correct markdown when all inputs are 0"""
         mock_file = mock_open()
         with patch("builtins.open", mock_file):
-            write_to_markdown(0, 0, 0, 0, {})
+            write_to_markdown(0, 0, 0, 0, {}, [])
             mock_file().write.assert_called_once_with(
                 "# Cleanowners Report\n\n"
                 "## Overall Stats\n"

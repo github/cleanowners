@@ -69,6 +69,7 @@ def main():  # pragma: no cover
     repos = get_repos_iterator(organization, repository_list, github_connection)
 
     repo_and_users_to_remove = {}
+    repos_missing_codeowners = []
     for repo in repos:
         # Check if the repository is in the exempt_repositories_list
         if repo.full_name in exempt_repositories_list:
@@ -87,6 +88,7 @@ def main():  # pragma: no cover
         if not codeowners_file_contents:
             print(f"Skipping {repo.full_name} as it does not have a CODEOWNERS file")
             no_codeowners_count += 1
+            repos_missing_codeowners.append(repo)
             continue
 
         codeowners_count += 1
@@ -167,6 +169,7 @@ def main():  # pragma: no cover
             no_codeowners_count,
             codeowners_count,
             repo_and_users_to_remove,
+            repos_missing_codeowners,
         )
 
 
