@@ -4,6 +4,8 @@
 
 Cleanowners is a GitHub Action that is designed to help keep `CODEOWNERS` files current by removing users that are no longer a part of the organization. This is helpful for companies that are looking to remove outdated information in the `CODEOWNERS` file. This action can be paired with other `CODEOWNERS` related actions to suggest new owners or lint `CODEOWNERS` files to ensure accuracy.
 
+If a repository is missing a `CODEOWNERS` file (or it is empty), the action will open a pull request that adds a placeholder `CODEOWNERS` file for maintainers to update.
+
 This action was developed by the GitHub OSPO for our own use and developed in a way that we could open source it that it might be useful to you as well! If you want to know more about how we use it, reach out in an issue in this repository.
 
 ## Support

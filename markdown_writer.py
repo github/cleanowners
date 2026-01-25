@@ -16,7 +16,7 @@ def write_to_markdown(
             "## Overall Stats\n"
             f"{users_count} Users to Remove\n"
             f"{pull_count} Pull Requests created\n"
-            f"{no_codeowners_count} Repositories with no CODEOWNERS file\n"
+            f"{no_codeowners_count} Repositories missing or empty CODEOWNERS files\n"
             f"{codeowners_count} Repositories with CODEOWNERS file\n"
         )
         if repo_and_users_to_remove:
@@ -27,7 +27,7 @@ def write_to_markdown(
                     file.write(f"- {user}\n")
                 file.write("\n")
         if repos_missing_codeowners:
-            file.write("## Repositories Missing CODEOWNERS\n")
+            file.write("## Repositories Missing or Empty CODEOWNERS\n")
             for repo in repos_missing_codeowners:
                 file.write(f"- {repo}\n")
             file.write("\n")
