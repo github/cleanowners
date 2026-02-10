@@ -84,11 +84,42 @@ def main():  # pragma: no cover
         # Check to see if repository has a CODEOWNERS file
         file_changed = False
         codeowners_file_contents, codeowners_filepath = get_codeowners_file(repo)
+        has_codeowners = codeowners_file_contents is not None
+        codeowners_size = (
+            getattr(codeowners_file_contents, "size", None) if has_codeowners else None
+        )
+        is_empty_codeowners = has_codeowners and codeowners_size == 0
 
-        if not codeowners_file_contents:
-            print(f"Skipping {repo.full_name} as it does not have a CODEOWNERS file")
+        if not has_codeowners or is_empty_codeowners:
+            repo_name = repo.full_name
             no_codeowners_count += 1
-            repos_missing_codeowners.append(repo)
+            repos_missing_codeowners.append(repo_name)
+
+            if not has_codeowners:
+                print(f"{repo_name} does not have a CODEOWNERS file")
+            else:
+                print(f"{repo_name} has an empty CODEOWNERS file")
+
+            if dry_run:
+                continue
+
+            suggested_codeowners = build_default_codeowners(repo)
+            target_path = codeowners_filepath or ".github/CODEOWNERS"
+            eligble_for_pr_count += 1
+            try:
+                pull = commit_changes(
+                    title,
+                    body,
+                    repo,
+                    suggested_codeowners,
+                    commit_message,
+                    target_path,
+                    create_new=not has_codeowners,
+                )
+                pull_count += 1
+                print(f"\tCreated pull request {pull.html_url}")
+            except github3.exceptions.NotFoundError:
+                print("\tFailed to create pull request. Check write permissions.")
             continue
 
         codeowners_count += 1
@@ -179,35 +210,14 @@ def get_codeowners_file(repo):
     the file contents and file path or None if it doesn't exist
     """
     codeowners_file_contents = None
-    codeowners_filepath = None
-    try:
-        if (
-            repo.file_contents(".github/CODEOWNERS")
-            and repo.file_contents(".github/CODEOWNERS").size > 0
-        ):
-            codeowners_file_contents = repo.file_contents(".github/CODEOWNERS")
-            codeowners_filepath = ".github/CODEOWNERS"
-    except github3.exceptions.NotFoundError:
-        pass
-    try:
-        if (
-            repo.file_contents("CODEOWNERS")
-            and repo.file_contents("CODEOWNERS").size > 0
-        ):
-            codeowners_file_contents = repo.file_contents("CODEOWNERS")
-            codeowners_filepath = "CODEOWNERS"
-    except github3.exceptions.NotFoundError:
-        pass
-    try:
-        if (
-            repo.file_contents("docs/CODEOWNERS")
-            and repo.file_contents("docs/CODEOWNERS").size > 0
-        ):
-            codeowners_file_contents = repo.file_contents("docs/CODEOWNERS")
-            codeowners_filepath = "docs/CODEOWNERS"
-    except github3.exceptions.NotFoundError:
-        pass
-    return codeowners_file_contents, codeowners_filepath
+    for path in (".github/CODEOWNERS", "CODEOWNERS", "docs/CODEOWNERS"):
+        try:
+            codeowners_file_contents = repo.file_contents(path)
+            if codeowners_file_contents:
+                return codeowners_file_contents, path
+        except github3.exceptions.NotFoundError:
+            continue
+    return None, None
 
 
 def print_stats(
@@ -216,7 +226,7 @@ def print_stats(
     """Print the statistics from this run to the terminal output"""
     print(f"Found {users_count} users to remove")
     print(f"Created {pull_count} pull requests successfully")
-    print(f"Skipped {no_codeowners_count} repositories without a CODEOWNERS file")
+    print(f"Found {no_codeowners_count} repositories missing or empty CODEOWNERS files")
     print(f"Processed {codeowners_count} repositories with a CODEOWNERS file")
     if eligble_for_pr_count == 0:
         print("No pull requests were needed")
@@ -273,6 +283,23 @@ def get_usernames_from_codeowners(codeowners_file_contents, ignore_teams=True):
     return usernames
 
 
+def build_default_codeowners(repo):
+    """Build a placeholder CODEOWNERS file for repositories without one."""
+    owner_login = repo.owner.login
+    owner_type = getattr(repo.owner, "type", "")
+    if owner_type == "Organization":
+        owner_handle = f"{owner_login}/REPLACE_WITH_TEAM"
+    else:
+        owner_handle = owner_login
+
+    contents = (
+        "# CODEOWNERS\n"
+        "# Replace the placeholder with the appropriate owner(s) for this repository.\n"
+        f"* @{owner_handle}\n"
+    )
+    return contents.encode("ASCII")
+
+
 def commit_changes(
     title,
     body,
@@ -280,6 +307,7 @@ def commit_changes(
     codeowners_file_contents_new,
     commit_message,
     codeowners_filepath,
+    create_new=False,
 ):
     """Commit the changes to the repo and open a pull request and return the pull request object"""
     default_branch = repo.default_branch
@@ -288,11 +316,19 @@ def commit_changes(
     front_matter = "refs/heads/"
     branch_name = f"codeowners-{str(uuid.uuid4())}"
     repo.create_ref(front_matter + branch_name, default_branch_commit)
-    repo.file_contents(codeowners_filepath).update(
-        message=commit_message,
-        content=codeowners_file_contents_new,
-        branch=branch_name,
-    )
+    if create_new:
+        repo.create_file(
+            codeowners_filepath,
+            commit_message,
+            codeowners_file_contents_new,
+            branch=branch_name,
+        )
+    else:
+        repo.file_contents(codeowners_filepath).update(
+            message=commit_message,
+            content=codeowners_file_contents_new,
+            branch=branch_name,
+        )
 
     pull = repo.create_pull(
         title=title, body=body, head=branch_name, base=repo.default_branch

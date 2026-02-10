@@ -19,7 +19,7 @@ class TestWriteToMarkdown(unittest.TestCase):
                 "## Overall Stats\n"
                 "0 Users to Remove\n"
                 "0 Pull Requests created\n"
-                "2 Repositories with no CODEOWNERS file\n"
+                "2 Repositories missing or empty CODEOWNERS files\n"
                 "3 Repositories with CODEOWNERS file\n"
             )
 
@@ -35,7 +35,7 @@ class TestWriteToMarkdown(unittest.TestCase):
                     "## Overall Stats\n"
                     "1 Users to Remove\n"
                     "2 Pull Requests created\n"
-                    "3 Repositories with no CODEOWNERS file\n"
+                    "3 Repositories missing or empty CODEOWNERS files\n"
                     "4 Repositories with CODEOWNERS file\n"
                 ),
                 call("## Repositories and Users to Remove\n"),
@@ -61,10 +61,10 @@ class TestWriteToMarkdown(unittest.TestCase):
                     "## Overall Stats\n"
                     "0 Users to Remove\n"
                     "0 Pull Requests created\n"
-                    "2 Repositories with no CODEOWNERS file\n"
+                    "2 Repositories missing or empty CODEOWNERS files\n"
                     "0 Repositories with CODEOWNERS file\n"
                 ),
-                call("## Repositories Missing CODEOWNERS\n"),
+                call("## Repositories Missing or Empty CODEOWNERS\n"),
                 call("- repo1\n"),
                 call("- repo2\n"),
                 call("\n"),
@@ -81,7 +81,7 @@ class TestWriteToMarkdown(unittest.TestCase):
                 "## Overall Stats\n"
                 "0 Users to Remove\n"
                 "0 Pull Requests created\n"
-                "0 Repositories with no CODEOWNERS file\n"
+                "0 Repositories missing or empty CODEOWNERS files\n"
                 "0 Repositories with CODEOWNERS file\n"
             )
 

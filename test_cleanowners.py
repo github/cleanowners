@@ -7,6 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import github3
 from cleanowners import (
+    build_default_codeowners,
     commit_changes,
     get_codeowners_file,
     get_org,
@@ -60,6 +61,40 @@ class TestCommitChanges(unittest.TestCase):
         )
 
         # Assert that the function returned the expected result
+        self.assertEqual(result, "MockPullRequest")
+
+    @patch("uuid.uuid4")
+    def test_commit_changes_create_new_file(self, mock_uuid):
+        """Test the commit_changes function when creating a new file."""
+        mock_uuid.return_value = uuid.UUID("12345678123456781234567812345678")
+        mock_repo = MagicMock()
+        mock_repo.default_branch = "main"
+        mock_repo.ref.return_value.object.sha = "abc123"
+        mock_repo.create_ref.return_value = True
+        mock_repo.create_file.return_value = True
+        mock_repo.create_pull.return_value = "MockPullRequest"
+
+        result = commit_changes(
+            "Test Title",
+            "Test Body",
+            mock_repo,
+            b"new content",
+            "Test commit message",
+            "CODEOWNERS",
+            create_new=True,
+        )
+
+        branch_name = "codeowners-12345678-1234-5678-1234-567812345678"
+        mock_repo.create_ref.assert_called_once_with(
+            f"refs/heads/{branch_name}", "abc123"
+        )
+        mock_repo.create_file.assert_called_once_with(
+            "CODEOWNERS",
+            "Test commit message",
+            b"new content",
+            branch=branch_name,
+        )
+        mock_repo.file_contents.assert_not_called()
         self.assertEqual(result, "MockPullRequest")
 
 
@@ -197,7 +232,7 @@ class TestPrintStats(unittest.TestCase):
         expected_output = (
             "Found 4 users to remove\n"
             "Created 5 pull requests successfully\n"
-            "Skipped 2 repositories without a CODEOWNERS file\n"
+            "Found 2 repositories missing or empty CODEOWNERS files\n"
             "Processed 3 repositories with a CODEOWNERS file\n"
             "50.0% of eligible repositories had pull requests created\n"
             "60.0% of repositories had CODEOWNERS files\n"
@@ -211,7 +246,7 @@ class TestPrintStats(unittest.TestCase):
         expected_output = (
             "Found 4 users to remove\n"
             "Created 0 pull requests successfully\n"
-            "Skipped 2 repositories without a CODEOWNERS file\n"
+            "Found 2 repositories missing or empty CODEOWNERS files\n"
             "Processed 3 repositories with a CODEOWNERS file\n"
             "No pull requests were needed\n"
             "60.0% of repositories had CODEOWNERS files\n"
@@ -225,7 +260,7 @@ class TestPrintStats(unittest.TestCase):
         expected_output = (
             "Found 0 users to remove\n"
             "Created 0 pull requests successfully\n"
-            "Skipped 0 repositories without a CODEOWNERS file\n"
+            "Found 0 repositories missing or empty CODEOWNERS files\n"
             "Processed 0 repositories with a CODEOWNERS file\n"
             "No pull requests were needed\n"
             "No repositories were processed\n"
@@ -274,8 +309,40 @@ class TestGetCodeownersFile(unittest.TestCase):
         self.assertIsNone(path)
 
     def test_codeowners_empty_file(self):
-        """Test that an empty CODEOWNERS file is not considered valid because it is empty."""
+        """Test that an empty CODEOWNERS file is returned for further handling."""
         self.repo.file_contents.side_effect = lambda path: MagicMock(size=0)
         contents, path = get_codeowners_file(self.repo)
-        self.assertIsNone(contents)
-        self.assertIsNone(path)
+        self.assertIsNotNone(contents)
+        self.assertEqual(path, ".github/CODEOWNERS")
+
+    def test_codeowners_not_found_then_found(self):
+        """Test that a later path is used when earlier ones are not found."""
+        not_found = github3.exceptions.NotFoundError(resp=MagicMock(status_code=404))
+        self.repo.file_contents.side_effect = [not_found, MagicMock(size=1)]
+        contents, path = get_codeowners_file(self.repo)
+        self.assertIsNotNone(contents)
+        self.assertEqual(path, "CODEOWNERS")
+
+
+class TestBuildDefaultCodeowners(unittest.TestCase):
+    """Test the build_default_codeowners function in cleanowners.py"""
+
+    def test_build_default_codeowners_for_org(self):
+        """Test placeholder uses org team handle."""
+        repo = MagicMock()
+        repo.owner.login = "my-org"
+        repo.owner.type = "Organization"
+
+        result = build_default_codeowners(repo)
+
+        self.assertIn(b"@my-org/REPLACE_WITH_TEAM", result)
+
+    def test_build_default_codeowners_for_user(self):
+        """Test placeholder uses user handle."""
+        repo = MagicMock()
+        repo.owner.login = "my-user"
+        repo.owner.type = "User"
+
+        result = build_default_codeowners(repo)
+
+        self.assertIn(b"@my-user", result)
