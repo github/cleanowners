@@ -111,9 +111,7 @@ class TestGetUsernamesFromCodeowners(unittest.TestCase):
         @org/team
         # Another comment
         @user3 @user4
-        """.encode(
-            "ASCII"
-        )
+        """.encode("ASCII")
         expected_usernames = ["user1", "user2", "user3", "user4"]
 
         result = get_usernames_from_codeowners(codeowners_file_contents)
@@ -130,9 +128,7 @@ class TestGetUsernamesFromCodeowners(unittest.TestCase):
         @org/team
         # Another comment
         @user3 @user4
-        """.encode(
-            "ASCII"
-        )
+        """.encode("ASCII")
         expected_usernames = ["user1", "user2", "org/team", "user3", "user4"]
 
         result = get_usernames_from_codeowners(codeowners_file_contents, False)

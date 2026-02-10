@@ -57,13 +57,11 @@ def main():  # pragma: no cover
     if organization and not repository_list:
         gh_org = get_org(github_connection, organization)
         if not gh_org:
-            raise ValueError(
-                f"""Organization {organization} is not an organization and
+            raise ValueError(f"""Organization {organization} is not an organization and
             REPOSITORY environment variable was not set.
             Please set valid ORGANIZATION or set REPOSITORY environment
             variable
-            """
-            )
+            """)
 
     # Get the repositories from the organization or list of repositories
     repos = get_repos_iterator(organization, repository_list, github_connection)
