@@ -62,6 +62,7 @@ def write_step_summary(
         return
     summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
     if not summary_path:
+        print("GITHUB_STEP_SUMMARY not set, skipping step summary")
         return
 
     with open(summary_path, "a", encoding="utf-8") as file:

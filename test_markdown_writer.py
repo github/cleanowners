@@ -209,7 +209,9 @@ class TestWriteStepSummary(unittest.TestCase):
         with patch.dict(os.environ, {}, clear=False):
             os.environ.pop("GITHUB_STEP_SUMMARY", None)
             mock_file = mock_open()
-            with patch("builtins.open", mock_file):
+            with patch("builtins.open", mock_file), patch(
+                "builtins.print"
+            ) as mock_print:
                 write_step_summary(
                     pull_count=0,
                     eligble_for_pr_count=0,
@@ -221,6 +223,9 @@ class TestWriteStepSummary(unittest.TestCase):
                     enable_github_actions_step_summary=True,
                 )
                 mock_file.assert_not_called()
+                mock_print.assert_called_once_with(
+                    "GITHUB_STEP_SUMMARY not set, skipping step summary"
+                )
 
     @patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": "/tmp/test_summary.md"})
     def test_noop_when_not_enabled(self):
