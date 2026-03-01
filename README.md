@@ -61,6 +61,10 @@ This action can be configured to authenticate with GitHub App Installation or Pe
 | `DRY_RUN`           | False                                           | False   | If set to true, this action will not create any pull requests. It will only log the repositories that could have the `CODEOWNERS` file updated. This is useful for testing or discovering the scope of this issue in your organization.               |
 | `ISSUE_REPORT`      | False                                           | False   | If set to true, this action will create an issue in the repository with the report on the repositories that had users removed from the `CODEOWNERS` file.                                                                                             |
 
+### GitHub Actions Step Summary
+
+When running as a GitHub Action, cleanowners automatically writes a summary to the [workflow run summary page](https://github.blog/2022-05-09-supercharging-github-actions-with-job-summaries/). This includes overall stats, repositories and users to remove, repositories missing CODEOWNERS files, links to any pull requests created, and error details if the run failed partway through. No configuration is required.
+
 ### Example workflows
 
 #### Basic
