@@ -36,6 +36,7 @@ def main():  # pragma: no cover
         body,
         commit_message,
         issue_report,
+        enable_github_actions_step_summary,
     ) = env.get_env_vars()
 
     # Auth to GitHub.com or GHE
@@ -217,6 +218,7 @@ def main():  # pragma: no cover
             repos_missing_codeowners=repos_missing_codeowners,
             error=error_message,
             pull_request_urls=pull_request_urls,
+            enable_github_actions_step_summary=enable_github_actions_step_summary,
         )
 
         if issue_report:

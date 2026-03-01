@@ -45,8 +45,11 @@ def write_step_summary(
     repos_missing_codeowners,
     error=None,
     pull_request_urls=None,
+    enable_github_actions_step_summary=False,
 ):
     """Write the results to the GitHub Actions step summary"""
+    if not enable_github_actions_step_summary:
+        return
     summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
     if not summary_path:
         return

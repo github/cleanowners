@@ -103,6 +103,7 @@ class TestWriteStepSummary(unittest.TestCase):
                 users_count=0,
                 repo_and_users_to_remove={},
                 repos_missing_codeowners=[],
+                enable_github_actions_step_summary=True,
             )
             mock_file.assert_called_once_with(
                 "/tmp/test_summary.md", "a", encoding="utf-8"
@@ -131,6 +132,7 @@ class TestWriteStepSummary(unittest.TestCase):
                 users_count=4,
                 repo_and_users_to_remove={},
                 repos_missing_codeowners=[],
+                enable_github_actions_step_summary=True,
             )
             written = "".join(c.args[0] for c in mock_file().write.call_args_list)
             self.assertIn(
@@ -150,6 +152,7 @@ class TestWriteStepSummary(unittest.TestCase):
                 users_count=0,
                 repo_and_users_to_remove={},
                 repos_missing_codeowners=[],
+                enable_github_actions_step_summary=True,
             )
             written = "".join(c.args[0] for c in mock_file().write.call_args_list)
             self.assertIn("No pull requests were needed", written)
@@ -169,6 +172,7 @@ class TestWriteStepSummary(unittest.TestCase):
                 users_count=3,
                 repo_and_users_to_remove=repo_users,
                 repos_missing_codeowners=[],
+                enable_github_actions_step_summary=True,
             )
             written = "".join(c.args[0] for c in mock_file().write.call_args_list)
             self.assertIn("## Repositories and Users to Remove", written)
@@ -191,6 +195,7 @@ class TestWriteStepSummary(unittest.TestCase):
                 users_count=0,
                 repo_and_users_to_remove={},
                 repos_missing_codeowners=["org/repo1", "org/repo2"],
+                enable_github_actions_step_summary=True,
             )
             written = "".join(c.args[0] for c in mock_file().write.call_args_list)
             self.assertIn("## Repositories Missing or Empty CODEOWNERS", written)
@@ -213,8 +218,26 @@ class TestWriteStepSummary(unittest.TestCase):
                     users_count=0,
                     repo_and_users_to_remove={},
                     repos_missing_codeowners=[],
+                    enable_github_actions_step_summary=True,
                 )
                 mock_file.assert_not_called()
+
+    @patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": "/tmp/test_summary.md"})
+    def test_noop_when_not_enabled(self):
+        """Test that nothing happens when enable_github_actions_step_summary is False"""
+        mock_file = mock_open()
+        with patch("builtins.open", mock_file):
+            write_step_summary(
+                pull_count=0,
+                eligble_for_pr_count=0,
+                no_codeowners_count=0,
+                codeowners_count=0,
+                users_count=0,
+                repo_and_users_to_remove={},
+                repos_missing_codeowners=[],
+                enable_github_actions_step_summary=False,
+            )
+            mock_file.assert_not_called()
 
     @patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": "/tmp/test_summary.md"})
     def test_writes_error_when_provided(self):
@@ -230,6 +253,7 @@ class TestWriteStepSummary(unittest.TestCase):
                 repo_and_users_to_remove={},
                 repos_missing_codeowners=[],
                 error="API rate limit exceeded",
+                enable_github_actions_step_summary=True,
             )
             written = "".join(c.args[0] for c in mock_file().write.call_args_list)
             self.assertIn("## Error", written)
@@ -251,6 +275,7 @@ class TestWriteStepSummary(unittest.TestCase):
                 repo_and_users_to_remove={},
                 repos_missing_codeowners=[],
                 error=None,
+                enable_github_actions_step_summary=True,
             )
             written = "".join(c.args[0] for c in mock_file().write.call_args_list)
             self.assertNotIn("## Error", written)
@@ -272,6 +297,7 @@ class TestWriteStepSummary(unittest.TestCase):
                     "https://github.com/org/repo1/pull/42",
                     "https://github.com/org/repo2/pull/99",
                 ],
+                enable_github_actions_step_summary=True,
             )
             written = "".join(c.args[0] for c in mock_file().write.call_args_list)
             self.assertIn("## Pull Requests Created", written)
@@ -292,6 +318,7 @@ class TestWriteStepSummary(unittest.TestCase):
                 repo_and_users_to_remove={},
                 repos_missing_codeowners=[],
                 pull_request_urls=[],
+                enable_github_actions_step_summary=True,
             )
             written = "".join(c.args[0] for c in mock_file().write.call_args_list)
             self.assertNotIn("## Pull Requests Created", written)
