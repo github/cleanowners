@@ -3,6 +3,26 @@
 import os
 
 
+def _write_repos_and_users_to_remove(file, repo_and_users_to_remove):
+    """Write the repos and users to remove section to a file handle"""
+    if repo_and_users_to_remove:
+        file.write("## Repositories and Users to Remove\n")
+        for repo, users in repo_and_users_to_remove.items():
+            file.write(f"{repo}\n")
+            for user in users:
+                file.write(f"- {user}\n")
+            file.write("\n")
+
+
+def _write_repos_missing_codeowners(file, repos_missing_codeowners):
+    """Write the repos missing CODEOWNERS section to a file handle"""
+    if repos_missing_codeowners:
+        file.write("## Repositories Missing or Empty CODEOWNERS\n")
+        for repo in repos_missing_codeowners:
+            file.write(f"- {repo}\n")
+        file.write("\n")
+
+
 def write_to_markdown(
     users_count,
     pull_count,
@@ -21,18 +41,8 @@ def write_to_markdown(
             f"{no_codeowners_count} Repositories missing or empty CODEOWNERS files\n"
             f"{codeowners_count} Repositories with CODEOWNERS file\n"
         )
-        if repo_and_users_to_remove:
-            file.write("## Repositories and Users to Remove\n")
-            for repo, users in repo_and_users_to_remove.items():
-                file.write(f"{repo}\n")
-                for user in users:
-                    file.write(f"- {user}\n")
-                file.write("\n")
-        if repos_missing_codeowners:
-            file.write("## Repositories Missing or Empty CODEOWNERS\n")
-            for repo in repos_missing_codeowners:
-                file.write(f"- {repo}\n")
-            file.write("\n")
+        _write_repos_and_users_to_remove(file, repo_and_users_to_remove)
+        _write_repos_missing_codeowners(file, repos_missing_codeowners)
 
 
 def write_step_summary(
@@ -76,18 +86,8 @@ def write_step_summary(
                 f"- {round((codeowners_count / (codeowners_count + no_codeowners_count)) * 100, 2)}% of repositories had CODEOWNERS files\n"
             )
         file.write("\n")
-        if repo_and_users_to_remove:
-            file.write("## Repositories and Users to Remove\n")
-            for repo, users in repo_and_users_to_remove.items():
-                file.write(f"{repo}\n")
-                for user in users:
-                    file.write(f"- {user}\n")
-                file.write("\n")
-        if repos_missing_codeowners:
-            file.write("## Repositories Missing or Empty CODEOWNERS\n")
-            for repo in repos_missing_codeowners:
-                file.write(f"- {repo}\n")
-            file.write("\n")
+        _write_repos_and_users_to_remove(file, repo_and_users_to_remove)
+        _write_repos_missing_codeowners(file, repos_missing_codeowners)
         if pull_request_urls:
             file.write("## Pull Requests Created\n")
             for url in pull_request_urls:
