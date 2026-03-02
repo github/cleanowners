@@ -90,12 +90,8 @@ def write_step_summary(
             )
         file.write("\n")
         warning_suffix = " :warning:" if not error else ""
-        _write_repos_and_users_to_remove(
-            file, repo_and_users_to_remove, warning_suffix
-        )
-        _write_repos_missing_codeowners(
-            file, repos_missing_codeowners, warning_suffix
-        )
+        _write_repos_and_users_to_remove(file, repo_and_users_to_remove, warning_suffix)
+        _write_repos_missing_codeowners(file, repos_missing_codeowners, warning_suffix)
         if pull_request_urls:
             file.write("## Pull Requests Created :link:\n")
             for url in pull_request_urls:

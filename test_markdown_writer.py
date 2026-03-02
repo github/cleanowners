@@ -381,9 +381,7 @@ class TestWriteStepSummary(unittest.TestCase):
                 enable_github_actions_step_summary=True,
             )
             written = "".join(c.args[0] for c in mock_file().write.call_args_list)
-            self.assertIn(
-                "## Repositories and Users to Remove :warning:", written
-            )
+            self.assertIn("## Repositories and Users to Remove :warning:", written)
 
     @patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": "/tmp/test_summary.md"})
     def test_warning_on_missing_codeowners_without_error(self):
@@ -422,9 +420,7 @@ class TestWriteStepSummary(unittest.TestCase):
                 enable_github_actions_step_summary=True,
             )
             written = "".join(c.args[0] for c in mock_file().write.call_args_list)
-            self.assertNotIn(
-                "## Repositories and Users to Remove :warning:", written
-            )
+            self.assertNotIn("## Repositories and Users to Remove :warning:", written)
             self.assertNotIn(
                 "## Repositories Missing or Empty CODEOWNERS :warning:", written
             )
