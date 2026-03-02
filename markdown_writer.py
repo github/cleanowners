@@ -3,10 +3,10 @@
 import os
 
 
-def _write_repos_and_users_to_remove(file, repo_and_users_to_remove):
+def _write_repos_and_users_to_remove(file, repo_and_users_to_remove, header_suffix=""):
     """Write the repos and users to remove section to a file handle"""
     if repo_and_users_to_remove:
-        file.write("## Repositories and Users to Remove\n")
+        file.write(f"## Repositories and Users to Remove{header_suffix}\n")
         for repo, users in repo_and_users_to_remove.items():
             file.write(f"{repo}\n")
             for user in users:
@@ -14,10 +14,10 @@ def _write_repos_and_users_to_remove(file, repo_and_users_to_remove):
             file.write("\n")
 
 
-def _write_repos_missing_codeowners(file, repos_missing_codeowners):
+def _write_repos_missing_codeowners(file, repos_missing_codeowners, header_suffix=""):
     """Write the repos missing CODEOWNERS section to a file handle"""
     if repos_missing_codeowners:
-        file.write("## Repositories Missing or Empty CODEOWNERS\n")
+        file.write(f"## Repositories Missing or Empty CODEOWNERS{header_suffix}\n")
         for repo in repos_missing_codeowners:
             file.write(f"- {repo}\n")
         file.write("\n")
@@ -66,9 +66,11 @@ def write_step_summary(
         return
 
     with open(summary_path, "a", encoding="utf-8") as file:
+        all_clean = no_codeowners_count == 0 and users_count == 0
+        stats_emoji = " :white_check_mark:" if all_clean else " :warning:"
         file.write(
             "# Cleanowners Report\n\n"
-            "## Overall Stats\n"
+            f"## Overall Stats{stats_emoji}\n"
             f"- Found {users_count} users to remove\n"
             f"- Created {pull_count} pull requests successfully\n"
             f"- Found {no_codeowners_count} repositories missing or empty CODEOWNERS files\n"
@@ -87,12 +89,17 @@ def write_step_summary(
                 f"- {round((codeowners_count / (codeowners_count + no_codeowners_count)) * 100, 2)}% of repositories had CODEOWNERS files\n"
             )
         file.write("\n")
-        _write_repos_and_users_to_remove(file, repo_and_users_to_remove)
-        _write_repos_missing_codeowners(file, repos_missing_codeowners)
+        warning_suffix = " :warning:" if not error else ""
+        _write_repos_and_users_to_remove(
+            file, repo_and_users_to_remove, warning_suffix
+        )
+        _write_repos_missing_codeowners(
+            file, repos_missing_codeowners, warning_suffix
+        )
         if pull_request_urls:
-            file.write("## Pull Requests Created\n")
+            file.write("## Pull Requests Created :link:\n")
             for url in pull_request_urls:
                 file.write(f"- {url}\n")
             file.write("\n")
         if error:
-            file.write(f"## Error\n\n{error}\n")
+            file.write(f"## Error :x:\n\n{error}\n")
