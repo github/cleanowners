@@ -21,6 +21,7 @@ class TestEnv(unittest.TestCase):
             "BODY",
             "COMMIT_MESSAGE",
             "DRY_RUN",
+            "ENABLE_GITHUB_ACTIONS_STEP_SUMMARY",
             "EXEMPT_REPOS",
             "GH_APP_ID",
             "GH_ENTERPRISE_URL",
@@ -70,6 +71,7 @@ class TestEnv(unittest.TestCase):
             BODY,
             COMMIT_MESSAGE,
             False,
+            True,
         )
         result = get_env_vars(True)
         self.assertEqual(result, expected_result)
@@ -109,6 +111,7 @@ class TestEnv(unittest.TestCase):
             BODY,
             COMMIT_MESSAGE,
             False,
+            True,
         )
         result = get_env_vars(True)
         self.assertEqual(result, expected_result)
@@ -169,6 +172,7 @@ class TestEnv(unittest.TestCase):
             BODY,
             COMMIT_MESSAGE,
             False,
+            True,
         )
         result = get_env_vars(True)
         self.assertEqual(result, expected_result)
@@ -204,6 +208,41 @@ class TestEnv(unittest.TestCase):
             BODY,
             COMMIT_MESSAGE,
             True,
+            True,
+        )
+        result = get_env_vars(True)
+        self.assertEqual(result, expected_result)
+
+    @patch.dict(
+        os.environ,
+        {
+            "GH_APP_ID": "",
+            "GH_APP_INSTALLATION_ID": "",
+            "GH_APP_PRIVATE_KEY": "",
+            "GH_TOKEN": TOKEN,
+            "ORGANIZATION": ORGANIZATION,
+            "ENABLE_GITHUB_ACTIONS_STEP_SUMMARY": "false",
+        },
+        clear=True,
+    )
+    def test_get_env_vars_with_step_summary_disabled(self):
+        """Test that ENABLE_GITHUB_ACTIONS_STEP_SUMMARY can be explicitly disabled"""
+        expected_result = (
+            ORGANIZATION,
+            [],
+            None,
+            None,
+            b"",
+            False,
+            TOKEN,
+            "",
+            [],
+            False,
+            "Clean up CODEOWNERS file",
+            "Consider these updates to the CODEOWNERS file to remove users no longer in this organization.",
+            "Remove users no longer in this organization from CODEOWNERS file",
+            False,
+            False,
         )
         result = get_env_vars(True)
         self.assertEqual(result, expected_result)
@@ -254,6 +293,7 @@ class TestEnv(unittest.TestCase):
             "Consider these updates to the CODEOWNERS file to remove users no longer in this organization.",
             "Remove users no longer in this organization from CODEOWNERS file",
             False,
+            True,
         )
         result = get_env_vars(True)
         self.assertEqual(result, expected_result)

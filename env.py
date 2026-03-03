@@ -59,6 +59,7 @@ def get_env_vars(
     str,
     str,
     bool,
+    bool,
 ]:
     """
     Get the environment variables for use in the action.
@@ -81,6 +82,7 @@ def get_env_vars(
         body (str): The body to use for the pull request
         message (str): Commit message to use
         issue_report (bool): Whether or not to create an issue report with the results
+        enable_github_actions_step_summary (bool): Whether to write a GitHub Actions step summary
 
     """
     if not test:
@@ -170,6 +172,9 @@ def get_env_vars(
         )
 
     issue_report = get_bool_env_var("ISSUE_REPORT")
+    enable_github_actions_step_summary = get_bool_env_var(
+        "ENABLE_GITHUB_ACTIONS_STEP_SUMMARY", default=True
+    )
 
     return (
         organization,
@@ -186,4 +191,5 @@ def get_env_vars(
         body,
         commit_message,
         issue_report,
+        enable_github_actions_step_summary,
     )
