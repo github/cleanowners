@@ -209,9 +209,10 @@ class TestWriteStepSummary(unittest.TestCase):
         with patch.dict(os.environ, {}, clear=False):
             os.environ.pop("GITHUB_STEP_SUMMARY", None)
             mock_file = mock_open()
-            with patch("builtins.open", mock_file), patch(
-                "builtins.print"
-            ) as mock_print:
+            with (
+                patch("builtins.open", mock_file),
+                patch("builtins.print") as mock_print,
+            ):
                 write_step_summary(
                     pull_count=0,
                     eligble_for_pr_count=0,

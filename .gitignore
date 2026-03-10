@@ -144,4 +144,4 @@ cython_debug/
 .DS_Store
 
 # AI
-.claude/
+**/.claude/*.local.*
