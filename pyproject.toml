@@ -5,7 +5,7 @@ description = "GitHub Action that cleans up CODEOWNERS files by removing users w
 requires-python = ">=3.11"
 dependencies = [
     "github3-py==4.0.1",
-    "python-dotenv==1.2.1",
+    "python-dotenv==1.2.2",
     "requests==2.32.5",
 ]
 
