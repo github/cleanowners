@@ -1,6 +1,5 @@
 """Test the functions in the cleanowners module."""
 
-import re
 import unittest
 import uuid
 from io import StringIO
@@ -9,12 +8,14 @@ from unittest.mock import MagicMock, patch
 import github3
 from cleanowners import (
     build_default_codeowners,
+    cleanup_whitespace,
     commit_changes,
     get_codeowners_file,
     get_org,
     get_repos_iterator,
     get_usernames_from_codeowners,
     print_stats,
+    remove_username_from_content,
 )
 
 
@@ -158,20 +159,14 @@ class TestGetUsernamesFromCodeowners(unittest.TestCase):
         codeowners_decoded = b"* @alice @bob @charlie\ndocs/* @alice\n"
         usernames_to_remove = ["alice", "bob"]
 
-        # Replicate the removal pattern from main()
         codeowners_file_contents_new = codeowners_decoded
+        changed_lines: set[int] = set()
         for username in usernames_to_remove:
-            pattern = re.escape(f"@{username}".encode("ASCII"))
-            codeowners_file_contents_new = re.sub(
-                pattern + rb"(?=\s|$)",
-                b"",
-                codeowners_file_contents_new,
+            codeowners_file_contents_new = remove_username_from_content(
+                codeowners_file_contents_new, username, changed_lines
             )
-        codeowners_file_contents_new = re.sub(
-            rb"[ \t]{2,}", b" ", codeowners_file_contents_new
-        )
-        codeowners_file_contents_new = re.sub(
-            rb"[ \t]+\r?$", b"", codeowners_file_contents_new, flags=re.MULTILINE
+        codeowners_file_contents_new = cleanup_whitespace(
+            codeowners_file_contents_new, changed_lines
         )
 
         remaining = get_usernames_from_codeowners(codeowners_file_contents_new)
@@ -189,18 +184,13 @@ class TestGetUsernamesFromCodeowners(unittest.TestCase):
         usernames_to_remove = ["bob"]
 
         codeowners_file_contents_new = codeowners_decoded
+        changed_lines: set[int] = set()
         for username in usernames_to_remove:
-            pattern = re.escape(f"@{username}".encode("ASCII"))
-            codeowners_file_contents_new = re.sub(
-                pattern + rb"(?=\s|$)",
-                b"",
-                codeowners_file_contents_new,
+            codeowners_file_contents_new = remove_username_from_content(
+                codeowners_file_contents_new, username, changed_lines
             )
-        codeowners_file_contents_new = re.sub(
-            rb"[ \t]{2,}", b" ", codeowners_file_contents_new
-        )
-        codeowners_file_contents_new = re.sub(
-            rb"[ \t]+\r?$", b"", codeowners_file_contents_new, flags=re.MULTILINE
+        codeowners_file_contents_new = cleanup_whitespace(
+            codeowners_file_contents_new, changed_lines
         )
 
         remaining = get_usernames_from_codeowners(codeowners_file_contents_new)
@@ -219,18 +209,13 @@ class TestGetUsernamesFromCodeowners(unittest.TestCase):
         usernames_to_remove = ["bob"]
 
         codeowners_file_contents_new = codeowners_decoded
+        changed_lines: set[int] = set()
         for username in usernames_to_remove:
-            pattern = re.escape(f"@{username}".encode("ASCII"))
-            codeowners_file_contents_new = re.sub(
-                pattern + rb"(?=\s|$)",
-                b"",
-                codeowners_file_contents_new,
+            codeowners_file_contents_new = remove_username_from_content(
+                codeowners_file_contents_new, username, changed_lines
             )
-        codeowners_file_contents_new = re.sub(
-            rb"[ \t]{2,}", b" ", codeowners_file_contents_new
-        )
-        codeowners_file_contents_new = re.sub(
-            rb"[ \t]+\r?$", b"", codeowners_file_contents_new, flags=re.MULTILINE
+        codeowners_file_contents_new = cleanup_whitespace(
+            codeowners_file_contents_new, changed_lines
         )
 
         self.assertEqual(codeowners_file_contents_new, b"* @alice @charlie\n")
@@ -239,27 +224,46 @@ class TestGetUsernamesFromCodeowners(unittest.TestCase):
         """Test that whitespace cleanup works with CRLF line endings.
 
         Windows-style line endings use \\r\\n. The trailing whitespace
-        cleanup must strip spaces before \\r\\n, not just before \\n.
+        cleanup must strip spaces before \\r without consuming the \\r itself.
         """
         codeowners_decoded = b"* @alice @bob @charlie\r\n"
         usernames_to_remove = ["bob"]
 
         codeowners_file_contents_new = codeowners_decoded
+        changed_lines: set[int] = set()
         for username in usernames_to_remove:
-            pattern = re.escape(f"@{username}".encode("ASCII"))
-            codeowners_file_contents_new = re.sub(
-                pattern + rb"(?=\s|$)",
-                b"",
-                codeowners_file_contents_new,
+            codeowners_file_contents_new = remove_username_from_content(
+                codeowners_file_contents_new, username, changed_lines
             )
-        codeowners_file_contents_new = re.sub(
-            rb"[ \t]{2,}", b" ", codeowners_file_contents_new
-        )
-        codeowners_file_contents_new = re.sub(
-            rb"[ \t]+\r?$", b"", codeowners_file_contents_new, flags=re.MULTILINE
+        codeowners_file_contents_new = cleanup_whitespace(
+            codeowners_file_contents_new, changed_lines
         )
 
         self.assertEqual(codeowners_file_contents_new, b"* @alice @charlie\r\n")
+
+    def test_whitespace_cleanup_scoped_to_changed_lines(self):
+        """Test that whitespace cleanup only affects lines where usernames were removed.
+
+        Lines with intentional alignment spacing should not be modified
+        if no username was removed from them.
+        """
+        codeowners_decoded = b"src/**    @alice @bob @charlie\ndocs/**   @dave\n"
+        usernames_to_remove = ["bob"]
+
+        codeowners_file_contents_new = codeowners_decoded
+        changed_lines: set[int] = set()
+        for username in usernames_to_remove:
+            codeowners_file_contents_new = remove_username_from_content(
+                codeowners_file_contents_new, username, changed_lines
+            )
+        codeowners_file_contents_new = cleanup_whitespace(
+            codeowners_file_contents_new, changed_lines
+        )
+
+        # src line should be normalized (removal happened there)
+        self.assertIn(b"src/** @alice @charlie", codeowners_file_contents_new)
+        # docs line should be untouched (no removal happened there)
+        self.assertIn(b"docs/**   @dave", codeowners_file_contents_new)
 
 
 class TestGetOrganization(unittest.TestCase):
