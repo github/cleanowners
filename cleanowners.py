@@ -1,5 +1,6 @@
 """A GitHub Action to suggest removal of non-organization members from CODEOWNERS files."""
 
+import re
 import uuid
 
 import auth
@@ -161,9 +162,11 @@ def main():  # pragma: no cover
                     if not dry_run:
                         # Remove that username from the codeowners_file_contents
                         file_changed = True
-                        bytes_username = f"@{username}".encode("ASCII")
-                        codeowners_file_contents_new = (
-                            codeowners_file_contents_new.replace(bytes_username, b"")
+                        pattern = re.escape(f"@{username}".encode("ASCII"))
+                        codeowners_file_contents_new = re.sub(
+                            pattern + rb"(?=\s|$)",
+                            b"",
+                            codeowners_file_contents_new,
                         )
 
             # Store the repo and users to remove for reporting later

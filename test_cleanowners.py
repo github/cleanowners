@@ -1,5 +1,6 @@
 """Test the functions in the cleanowners module."""
 
+import re
 import unittest
 import uuid
 from io import StringIO
@@ -160,15 +161,40 @@ class TestGetUsernamesFromCodeowners(unittest.TestCase):
         # Replicate the accumulative removal pattern from main()
         codeowners_file_contents_new = codeowners_decoded
         for username in usernames_to_remove:
-            bytes_username = f"@{username}".encode("ASCII")
-            codeowners_file_contents_new = codeowners_file_contents_new.replace(
-                bytes_username, b""
+            pattern = re.escape(f"@{username}".encode("ASCII"))
+            codeowners_file_contents_new = re.sub(
+                pattern + rb"(?=\s|$)",
+                b"",
+                codeowners_file_contents_new,
             )
 
         remaining = get_usernames_from_codeowners(codeowners_file_contents_new)
         self.assertEqual(remaining, ["charlie"])
         self.assertNotIn(b"@alice", codeowners_file_contents_new)
         self.assertNotIn(b"@bob", codeowners_file_contents_new)
+
+    def test_username_removal_does_not_corrupt_similar_names(self):
+        """Test that removing @bob does not corrupt @bobsmith.
+
+        The removal must use word-boundary matching so that @bob only matches
+        the exact handle, not as a prefix of @bobsmith.
+        """
+        codeowners_decoded = b"* @bobsmith @bob @charlie\n"
+        usernames_to_remove = ["bob"]
+
+        codeowners_file_contents_new = codeowners_decoded
+        for username in usernames_to_remove:
+            pattern = re.escape(f"@{username}".encode("ASCII"))
+            codeowners_file_contents_new = re.sub(
+                pattern + rb"(?=\s|$)",
+                b"",
+                codeowners_file_contents_new,
+            )
+
+        remaining = get_usernames_from_codeowners(codeowners_file_contents_new)
+        self.assertEqual(remaining, ["bobsmith", "charlie"])
+        self.assertIn(b"@bobsmith", codeowners_file_contents_new)
+        self.assertNotIn(b"@bob ", codeowners_file_contents_new)
 
 
 class TestGetOrganization(unittest.TestCase):
