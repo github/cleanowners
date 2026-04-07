@@ -103,8 +103,7 @@ class TestGetUsernamesFromCodeowners(unittest.TestCase):
 
     def test_get_usernames_from_codeowners_ignore_teams(self):
         """Test the get_usernames_from_codeowners function."""
-        codeowners_file_contents = MagicMock()
-        codeowners_file_contents.decoded = """
+        codeowners_file_contents = """
         # Comment
         @user1
         @user2
@@ -120,8 +119,7 @@ class TestGetUsernamesFromCodeowners(unittest.TestCase):
 
     def test_get_usernames_from_codeowners_with_teams(self):
         """Test the get_usernames_from_codeowners function."""
-        codeowners_file_contents = MagicMock()
-        codeowners_file_contents.decoded = """
+        codeowners_file_contents = """
         # Comment
         @user1
         @user2
@@ -132,6 +130,20 @@ class TestGetUsernamesFromCodeowners(unittest.TestCase):
         expected_usernames = ["user1", "user2", "org/team", "user3", "user4"]
 
         result = get_usernames_from_codeowners(codeowners_file_contents, False)
+
+        self.assertEqual(result, expected_usernames)
+
+    def test_get_usernames_from_codeowners_with_raw_bytes(self):
+        """Test that get_usernames_from_codeowners works with raw bytes (large file path).
+
+        Regression test for https://github.com/github-community-projects/cleanowners/issues/378
+        When a CODEOWNERS file is large, blob().decode_content() returns raw bytes
+        instead of a Contents object with a .decoded attribute.
+        """
+        codeowners_file_contents = b"* @user1 @user2\ndocs/* @user3\n"
+        expected_usernames = ["user1", "user2", "user3"]
+
+        result = get_usernames_from_codeowners(codeowners_file_contents)
 
         self.assertEqual(result, expected_usernames)
 

@@ -133,12 +133,14 @@ def main():  # pragma: no cover
 
             if codeowners_file_contents.content is None:
                 # This is a large file so we need to get the sha and download based off the sha
-                codeowners_file_contents = repo.blob(
+                codeowners_decoded = repo.blob(
                     repo.file_contents(codeowners_filepath).sha
                 ).decode_content()
+            else:
+                codeowners_decoded = codeowners_file_contents.decoded
 
             # Extract the usernames from the CODEOWNERS file
-            usernames = get_usernames_from_codeowners(codeowners_file_contents)
+            usernames = get_usernames_from_codeowners(codeowners_decoded)
 
             usernames_to_remove = []
             codeowners_file_contents_new = None
@@ -160,10 +162,8 @@ def main():  # pragma: no cover
                         # Remove that username from the codeowners_file_contents
                         file_changed = True
                         bytes_username = f"@{username}".encode("ASCII")
-                        codeowners_file_contents_new = (
-                            codeowners_file_contents.decoded.replace(
-                                bytes_username, b""
-                            )
+                        codeowners_file_contents_new = codeowners_decoded.replace(
+                            bytes_username, b""
                         )
 
             # Store the repo and users to remove for reporting later
@@ -291,9 +291,9 @@ def get_repos_iterator(organization, repository_list, github_connection):
 def get_usernames_from_codeowners(codeowners_file_contents, ignore_teams=True):
     """Extract the usernames from the CODEOWNERS file"""
     usernames = []
-    for line in codeowners_file_contents.decoded.splitlines():
+    for line in codeowners_file_contents.splitlines():
         if line:
-            line = line.decode()
+            line = line.decode() if isinstance(line, bytes) else line
             # skip comments
             if line.lstrip().startswith("#"):
                 continue
