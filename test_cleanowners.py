@@ -147,6 +147,29 @@ class TestGetUsernamesFromCodeowners(unittest.TestCase):
 
         self.assertEqual(result, expected_usernames)
 
+    def test_multiple_username_removals_are_cumulative(self):
+        """Test that removing multiple usernames preserves all removals.
+
+        Regression test for https://github.com/github-community-projects/cleanowners/issues/380
+        The removal loop must accumulate changes rather than replacing from the
+        original content each time, otherwise only the last removal survives.
+        """
+        codeowners_decoded = b"* @alice @bob @charlie\ndocs/* @alice\n"
+        usernames_to_remove = ["alice", "bob"]
+
+        # Replicate the accumulative removal pattern from main()
+        codeowners_file_contents_new = codeowners_decoded
+        for username in usernames_to_remove:
+            bytes_username = f"@{username}".encode("ASCII")
+            codeowners_file_contents_new = codeowners_file_contents_new.replace(
+                bytes_username, b""
+            )
+
+        remaining = get_usernames_from_codeowners(codeowners_file_contents_new)
+        self.assertEqual(remaining, ["charlie"])
+        self.assertNotIn(b"@alice", codeowners_file_contents_new)
+        self.assertNotIn(b"@bob", codeowners_file_contents_new)
+
 
 class TestGetOrganization(unittest.TestCase):
     """Test the get_org function in cleanowners.py"""

@@ -143,7 +143,7 @@ def main():  # pragma: no cover
             usernames = get_usernames_from_codeowners(codeowners_decoded)
 
             usernames_to_remove = []
-            codeowners_file_contents_new = None
+            codeowners_file_contents_new = codeowners_decoded
             for username in usernames:
                 org = organization if organization else repo.owner.login
                 gh_org = get_org(github_connection, org)
@@ -162,8 +162,8 @@ def main():  # pragma: no cover
                         # Remove that username from the codeowners_file_contents
                         file_changed = True
                         bytes_username = f"@{username}".encode("ASCII")
-                        codeowners_file_contents_new = codeowners_decoded.replace(
-                            bytes_username, b""
+                        codeowners_file_contents_new = (
+                            codeowners_file_contents_new.replace(bytes_username, b"")
                         )
 
             # Store the repo and users to remove for reporting later
