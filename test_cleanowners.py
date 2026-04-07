@@ -158,7 +158,7 @@ class TestGetUsernamesFromCodeowners(unittest.TestCase):
         codeowners_decoded = b"* @alice @bob @charlie\ndocs/* @alice\n"
         usernames_to_remove = ["alice", "bob"]
 
-        # Replicate the accumulative removal pattern from main()
+        # Replicate the removal pattern from main()
         codeowners_file_contents_new = codeowners_decoded
         for username in usernames_to_remove:
             pattern = re.escape(f"@{username}".encode("ASCII"))
@@ -167,6 +167,12 @@ class TestGetUsernamesFromCodeowners(unittest.TestCase):
                 b"",
                 codeowners_file_contents_new,
             )
+        codeowners_file_contents_new = re.sub(
+            rb"[ \t]{2,}", b" ", codeowners_file_contents_new
+        )
+        codeowners_file_contents_new = re.sub(
+            rb"[ \t]+$", b"", codeowners_file_contents_new, flags=re.MULTILINE
+        )
 
         remaining = get_usernames_from_codeowners(codeowners_file_contents_new)
         self.assertEqual(remaining, ["charlie"])
@@ -190,11 +196,44 @@ class TestGetUsernamesFromCodeowners(unittest.TestCase):
                 b"",
                 codeowners_file_contents_new,
             )
+        codeowners_file_contents_new = re.sub(
+            rb"[ \t]{2,}", b" ", codeowners_file_contents_new
+        )
+        codeowners_file_contents_new = re.sub(
+            rb"[ \t]+$", b"", codeowners_file_contents_new, flags=re.MULTILINE
+        )
 
         remaining = get_usernames_from_codeowners(codeowners_file_contents_new)
         self.assertEqual(remaining, ["bobsmith", "charlie"])
         self.assertIn(b"@bobsmith", codeowners_file_contents_new)
         self.assertNotIn(b"@bob ", codeowners_file_contents_new)
+
+    def test_username_removal_cleans_up_whitespace(self):
+        """Test that removing usernames does not leave extra whitespace.
+
+        After removing a username from between two others, the resulting
+        double space should be collapsed to a single space, and trailing
+        whitespace should be stripped.
+        """
+        codeowners_decoded = b"* @alice @bob @charlie\n"
+        usernames_to_remove = ["bob"]
+
+        codeowners_file_contents_new = codeowners_decoded
+        for username in usernames_to_remove:
+            pattern = re.escape(f"@{username}".encode("ASCII"))
+            codeowners_file_contents_new = re.sub(
+                pattern + rb"(?=\s|$)",
+                b"",
+                codeowners_file_contents_new,
+            )
+        codeowners_file_contents_new = re.sub(
+            rb"[ \t]{2,}", b" ", codeowners_file_contents_new
+        )
+        codeowners_file_contents_new = re.sub(
+            rb"[ \t]+$", b"", codeowners_file_contents_new, flags=re.MULTILINE
+        )
+
+        self.assertEqual(codeowners_file_contents_new, b"* @alice @charlie\n")
 
 
 class TestGetOrganization(unittest.TestCase):

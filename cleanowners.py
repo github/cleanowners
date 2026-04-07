@@ -173,6 +173,18 @@ def main():  # pragma: no cover
             if usernames_to_remove:
                 repo_and_users_to_remove[repo] = usernames_to_remove
 
+            # Clean up extra whitespace left by username removals
+            if file_changed:
+                codeowners_file_contents_new = re.sub(
+                    rb"[ \t]{2,}", b" ", codeowners_file_contents_new
+                )
+                codeowners_file_contents_new = re.sub(
+                    rb"[ \t]+$",
+                    b"",
+                    codeowners_file_contents_new,
+                    flags=re.MULTILINE,
+                )
+
             # Update the CODEOWNERS file if usernames were removed
             if file_changed:
                 eligble_for_pr_count += 1
