@@ -179,7 +179,7 @@ def main():  # pragma: no cover
                     rb"[ \t]{2,}", b" ", codeowners_file_contents_new
                 )
                 codeowners_file_contents_new = re.sub(
-                    rb"[ \t]+$",
+                    rb"[ \t]+\r?$",
                     b"",
                     codeowners_file_contents_new,
                     flags=re.MULTILINE,

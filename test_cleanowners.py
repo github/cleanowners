@@ -171,7 +171,7 @@ class TestGetUsernamesFromCodeowners(unittest.TestCase):
             rb"[ \t]{2,}", b" ", codeowners_file_contents_new
         )
         codeowners_file_contents_new = re.sub(
-            rb"[ \t]+$", b"", codeowners_file_contents_new, flags=re.MULTILINE
+            rb"[ \t]+\r?$", b"", codeowners_file_contents_new, flags=re.MULTILINE
         )
 
         remaining = get_usernames_from_codeowners(codeowners_file_contents_new)
@@ -200,7 +200,7 @@ class TestGetUsernamesFromCodeowners(unittest.TestCase):
             rb"[ \t]{2,}", b" ", codeowners_file_contents_new
         )
         codeowners_file_contents_new = re.sub(
-            rb"[ \t]+$", b"", codeowners_file_contents_new, flags=re.MULTILINE
+            rb"[ \t]+\r?$", b"", codeowners_file_contents_new, flags=re.MULTILINE
         )
 
         remaining = get_usernames_from_codeowners(codeowners_file_contents_new)
@@ -230,10 +230,36 @@ class TestGetUsernamesFromCodeowners(unittest.TestCase):
             rb"[ \t]{2,}", b" ", codeowners_file_contents_new
         )
         codeowners_file_contents_new = re.sub(
-            rb"[ \t]+$", b"", codeowners_file_contents_new, flags=re.MULTILINE
+            rb"[ \t]+\r?$", b"", codeowners_file_contents_new, flags=re.MULTILINE
         )
 
         self.assertEqual(codeowners_file_contents_new, b"* @alice @charlie\n")
+
+    def test_username_removal_handles_crlf_line_endings(self):
+        """Test that whitespace cleanup works with CRLF line endings.
+
+        Windows-style line endings use \\r\\n. The trailing whitespace
+        cleanup must strip spaces before \\r\\n, not just before \\n.
+        """
+        codeowners_decoded = b"* @alice @bob @charlie\r\n"
+        usernames_to_remove = ["bob"]
+
+        codeowners_file_contents_new = codeowners_decoded
+        for username in usernames_to_remove:
+            pattern = re.escape(f"@{username}".encode("ASCII"))
+            codeowners_file_contents_new = re.sub(
+                pattern + rb"(?=\s|$)",
+                b"",
+                codeowners_file_contents_new,
+            )
+        codeowners_file_contents_new = re.sub(
+            rb"[ \t]{2,}", b" ", codeowners_file_contents_new
+        )
+        codeowners_file_contents_new = re.sub(
+            rb"[ \t]+\r?$", b"", codeowners_file_contents_new, flags=re.MULTILINE
+        )
+
+        self.assertEqual(codeowners_file_contents_new, b"* @alice @charlie\r\n")
 
 
 class TestGetOrganization(unittest.TestCase):
