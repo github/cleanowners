@@ -304,6 +304,7 @@ class TestEnv(unittest.TestCase):
             result = get_int_env_var("TEST_VAR")
         self.assertIsNone(result)
 
+    @patch("env.load_dotenv")
     @patch.dict(
         os.environ,
         {
@@ -312,11 +313,11 @@ class TestEnv(unittest.TestCase):
         },
         clear=True,
     )
-    def test_get_env_vars_loads_dotenv_when_not_test(self):
+    def test_get_env_vars_loads_dotenv_when_not_test(self, mock_load_dotenv):
         """Test that get_env_vars loads from .env file when test=False."""
-        # When test=False, it should attempt to load .env (no error even if missing)
         result = get_env_vars(False)
         self.assertEqual(result[0], ORGANIZATION)
+        mock_load_dotenv.assert_called_once()
 
     @patch.dict(
         os.environ,
