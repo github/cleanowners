@@ -4,7 +4,7 @@ import os
 import unittest
 from unittest.mock import patch
 
-from env import get_env_vars
+from env import get_env_vars, get_int_env_var
 
 BODY = "Consider these updates to the CODEOWNERS file to remove users no longer in this organization."
 COMMIT_MESSAGE = "Remove users no longer in this organization from CODEOWNERS file"
@@ -297,6 +297,82 @@ class TestEnv(unittest.TestCase):
         )
         result = get_env_vars(True)
         self.assertEqual(result, expected_result)
+
+    def test_get_int_env_var_returns_none_for_non_integer(self):
+        """Test that get_int_env_var returns None when the value is not an integer."""
+        with patch.dict(os.environ, {"TEST_VAR": "not_a_number"}):
+            result = get_int_env_var("TEST_VAR")
+        self.assertIsNone(result)
+
+    @patch("env.load_dotenv")
+    @patch.dict(
+        os.environ,
+        {
+            "GH_TOKEN": TOKEN,
+            "ORGANIZATION": ORGANIZATION,
+        },
+        clear=True,
+    )
+    def test_get_env_vars_loads_dotenv_when_not_test(self, mock_load_dotenv):
+        """Test that get_env_vars loads from .env file when test=False."""
+        result = get_env_vars(False)
+        self.assertEqual(result[0], ORGANIZATION)
+        mock_load_dotenv.assert_called_once()
+
+    @patch.dict(
+        os.environ,
+        {
+            "GH_TOKEN": TOKEN,
+            "REPOSITORY": "/invalid-repo",
+        },
+        clear=True,
+    )
+    def test_get_env_vars_raises_for_repository_starting_with_slash(self):
+        """Test that REPOSITORY starting with / raises ValueError."""
+        with self.assertRaises(ValueError):
+            get_env_vars(True)
+
+    @patch.dict(
+        os.environ,
+        {
+            "GH_TOKEN": TOKEN,
+            "ORGANIZATION": ORGANIZATION,
+            "TITLE": "x" * 71,
+        },
+        clear=True,
+    )
+    def test_get_env_vars_raises_for_title_too_long(self):
+        """Test that TITLE longer than 70 characters raises ValueError."""
+        with self.assertRaises(ValueError):
+            get_env_vars(True)
+
+    @patch.dict(
+        os.environ,
+        {
+            "GH_TOKEN": TOKEN,
+            "ORGANIZATION": ORGANIZATION,
+            "BODY": "x" * 65537,
+        },
+        clear=True,
+    )
+    def test_get_env_vars_raises_for_body_too_long(self):
+        """Test that BODY longer than 65536 characters raises ValueError."""
+        with self.assertRaises(ValueError):
+            get_env_vars(True)
+
+    @patch.dict(
+        os.environ,
+        {
+            "GH_TOKEN": TOKEN,
+            "ORGANIZATION": ORGANIZATION,
+            "COMMIT_MESSAGE": "x" * 65537,
+        },
+        clear=True,
+    )
+    def test_get_env_vars_raises_for_commit_message_too_long(self):
+        """Test that COMMIT_MESSAGE longer than 65536 characters raises ValueError."""
+        with self.assertRaises(ValueError):
+            get_env_vars(True)
 
 
 if __name__ == "__main__":
