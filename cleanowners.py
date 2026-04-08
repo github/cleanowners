@@ -1,5 +1,6 @@
 """A GitHub Action to suggest removal of non-organization members from CODEOWNERS files."""
 
+import re
 import uuid
 
 import auth
@@ -15,6 +16,44 @@ def get_org(github_connection, organization):
     except github3.exceptions.NotFoundError:
         print(f"Organization {organization} not found")
         return None
+
+
+def remove_username_from_content(content, username, changed_lines):
+    """Remove a @username from CODEOWNERS content using line-scoped regex.
+
+    Args:
+        content: The current CODEOWNERS file content as bytes.
+        username: The GitHub username to remove (without @).
+        changed_lines: A set[int] tracking which line indices were modified.
+
+    Returns:
+        The updated content with the username removed.
+    """
+    pattern = re.escape(f"@{username}".encode("ASCII"))
+    lines = content.split(b"\n")
+    for i, line in enumerate(lines):
+        new_line = re.sub(pattern + rb"(?=\s|$)", b"", line)
+        if new_line != line:
+            lines[i] = new_line
+            changed_lines.add(i)
+    return b"\n".join(lines)
+
+
+def cleanup_whitespace(content, changed_lines):
+    """Normalize whitespace only on lines where usernames were removed.
+
+    Args:
+        content: The CODEOWNERS file content as bytes.
+        changed_lines: A set[int] of line indices to clean up.
+
+    Returns:
+        The content with extra whitespace removed on affected lines.
+    """
+    lines = content.split(b"\n")
+    for i in changed_lines:
+        lines[i] = re.sub(rb"[ \t]{2,}", b" ", lines[i])
+        lines[i] = re.sub(rb"[ \t]+(?=\r?$)", b"", lines[i])
+    return b"\n".join(lines)
 
 
 def main():  # pragma: no cover
@@ -143,7 +182,8 @@ def main():  # pragma: no cover
             usernames = get_usernames_from_codeowners(codeowners_decoded)
 
             usernames_to_remove = []
-            codeowners_file_contents_new = None
+            codeowners_file_contents_new = codeowners_decoded
+            changed_lines: set[int] = set()
             for username in usernames:
                 org = organization if organization else repo.owner.login
                 gh_org = get_org(github_connection, org)
@@ -161,14 +201,19 @@ def main():  # pragma: no cover
                     if not dry_run:
                         # Remove that username from the codeowners_file_contents
                         file_changed = True
-                        bytes_username = f"@{username}".encode("ASCII")
-                        codeowners_file_contents_new = codeowners_decoded.replace(
-                            bytes_username, b""
+                        codeowners_file_contents_new = remove_username_from_content(
+                            codeowners_file_contents_new, username, changed_lines
                         )
 
             # Store the repo and users to remove for reporting later
             if usernames_to_remove:
                 repo_and_users_to_remove[repo] = usernames_to_remove
+
+            # Clean up extra whitespace only on lines where usernames were removed
+            if file_changed:
+                codeowners_file_contents_new = cleanup_whitespace(
+                    codeowners_file_contents_new, changed_lines
+                )
 
             # Update the CODEOWNERS file if usernames were removed
             if file_changed:

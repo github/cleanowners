@@ -8,12 +8,14 @@ from unittest.mock import MagicMock, patch
 import github3
 from cleanowners import (
     build_default_codeowners,
+    cleanup_whitespace,
     commit_changes,
     get_codeowners_file,
     get_org,
     get_repos_iterator,
     get_usernames_from_codeowners,
     print_stats,
+    remove_username_from_content,
 )
 
 
@@ -146,6 +148,122 @@ class TestGetUsernamesFromCodeowners(unittest.TestCase):
         result = get_usernames_from_codeowners(codeowners_file_contents)
 
         self.assertEqual(result, expected_usernames)
+
+    def test_multiple_username_removals_are_cumulative(self):
+        """Test that removing multiple usernames preserves all removals.
+
+        Regression test for https://github.com/github-community-projects/cleanowners/issues/380
+        The removal loop must accumulate changes rather than replacing from the
+        original content each time, otherwise only the last removal survives.
+        """
+        codeowners_decoded = b"* @alice @bob @charlie\ndocs/* @alice\n"
+        usernames_to_remove = ["alice", "bob"]
+
+        codeowners_file_contents_new = codeowners_decoded
+        changed_lines: set[int] = set()
+        for username in usernames_to_remove:
+            codeowners_file_contents_new = remove_username_from_content(
+                codeowners_file_contents_new, username, changed_lines
+            )
+        codeowners_file_contents_new = cleanup_whitespace(
+            codeowners_file_contents_new, changed_lines
+        )
+
+        remaining = get_usernames_from_codeowners(codeowners_file_contents_new)
+        self.assertEqual(remaining, ["charlie"])
+        self.assertNotIn(b"@alice", codeowners_file_contents_new)
+        self.assertNotIn(b"@bob", codeowners_file_contents_new)
+
+    def test_username_removal_does_not_corrupt_similar_names(self):
+        """Test that removing @bob does not corrupt @bobsmith.
+
+        The removal must use word-boundary matching so that @bob only matches
+        the exact handle, not as a prefix of @bobsmith.
+        """
+        codeowners_decoded = b"* @bobsmith @bob @charlie\n"
+        usernames_to_remove = ["bob"]
+
+        codeowners_file_contents_new = codeowners_decoded
+        changed_lines: set[int] = set()
+        for username in usernames_to_remove:
+            codeowners_file_contents_new = remove_username_from_content(
+                codeowners_file_contents_new, username, changed_lines
+            )
+        codeowners_file_contents_new = cleanup_whitespace(
+            codeowners_file_contents_new, changed_lines
+        )
+
+        remaining = get_usernames_from_codeowners(codeowners_file_contents_new)
+        self.assertEqual(remaining, ["bobsmith", "charlie"])
+        self.assertIn(b"@bobsmith", codeowners_file_contents_new)
+        self.assertNotIn(b"@bob ", codeowners_file_contents_new)
+
+    def test_username_removal_cleans_up_whitespace(self):
+        """Test that removing usernames does not leave extra whitespace.
+
+        After removing a username from between two others, the resulting
+        double space should be collapsed to a single space, and trailing
+        whitespace should be stripped.
+        """
+        codeowners_decoded = b"* @alice @bob @charlie\n"
+        usernames_to_remove = ["bob"]
+
+        codeowners_file_contents_new = codeowners_decoded
+        changed_lines: set[int] = set()
+        for username in usernames_to_remove:
+            codeowners_file_contents_new = remove_username_from_content(
+                codeowners_file_contents_new, username, changed_lines
+            )
+        codeowners_file_contents_new = cleanup_whitespace(
+            codeowners_file_contents_new, changed_lines
+        )
+
+        self.assertEqual(codeowners_file_contents_new, b"* @alice @charlie\n")
+
+    def test_username_removal_handles_crlf_line_endings(self):
+        """Test that whitespace cleanup works with CRLF line endings.
+
+        Windows-style line endings use \\r\\n. The trailing whitespace
+        cleanup must strip spaces before \\r without consuming the \\r itself.
+        """
+        codeowners_decoded = b"* @alice @bob @charlie\r\n"
+        usernames_to_remove = ["bob"]
+
+        codeowners_file_contents_new = codeowners_decoded
+        changed_lines: set[int] = set()
+        for username in usernames_to_remove:
+            codeowners_file_contents_new = remove_username_from_content(
+                codeowners_file_contents_new, username, changed_lines
+            )
+        codeowners_file_contents_new = cleanup_whitespace(
+            codeowners_file_contents_new, changed_lines
+        )
+
+        self.assertEqual(codeowners_file_contents_new, b"* @alice @charlie\r\n")
+
+    def test_whitespace_cleanup_scoped_to_changed_lines(self):
+        """Test that whitespace cleanup only affects lines where usernames were removed.
+
+        Lines with intentional alignment spacing should not be modified
+        if no username was removed from them.
+        """
+        codeowners_decoded = b"src/**    @alice @bob @charlie\ndocs/**   @dave\n"
+        usernames_to_remove = ["bob"]
+
+        codeowners_file_contents_new = codeowners_decoded
+        changed_lines: set[int] = set()
+        for username in usernames_to_remove:
+            codeowners_file_contents_new = remove_username_from_content(
+                codeowners_file_contents_new, username, changed_lines
+            )
+        codeowners_file_contents_new = cleanup_whitespace(
+            codeowners_file_contents_new, changed_lines
+        )
+
+        # src line should be normalized (removal happened there)
+        self.assertIn(b"src/** @alice @charlie", codeowners_file_contents_new)
+        # docs line should be untouched (no removal happened there)
+        self.assertIn(b"docs/**   @dave", codeowners_file_contents_new)
 
 
 class TestGetOrganization(unittest.TestCase):
