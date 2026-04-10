@@ -19,6 +19,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
   CMD python3 -c "import os,sys; sys.exit(0 if os.path.exists('/action/workspace/cleanowners.py') else 1)"
 
 ENV PYTHONUNBUFFERED=1
+ENV UV_LINK_MODE=copy
 
 CMD ["/action/workspace/cleanowners.py"]
 ENTRYPOINT ["uv", "run", "--no-dev", "--project", "/action/workspace"]
